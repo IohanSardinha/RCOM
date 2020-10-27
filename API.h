@@ -36,19 +36,51 @@ void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* fr
 	}
 	else if(state == A_RCV)
 	{
-		
+		if(rcvd == C_SET)
+		{
+			state = C_RCV;
+			frame[2] = C_SET;
+		}
+		else if(rcvd == C_UA)
+		{
+			state = C_RCV;
+			frame[2] = C_UA;
+		}
+		else if(rcvd == C_DISC)
+		{
+			state = C_RCV;
+			frame[2] = C_DISC;
+		}
+		else if(rcvd == FLAG)
+		{
+			state = FLAG_RCV;
+		}
+		else
+			state = START;
 	}
 	else if(state == C_RCV)
 	{
-
+		if(rcvd == frame[1]^frame[2])
+		{
+			state = BCC_OK;
+			frame[3] = rcvd;
+		}
+		else if(rcvd == FLAG)
+		{
+			state = FLAG_RCV;
+		}
+		else
+		{
+			state = START;
+		}
 	}
 	else if(state == BCC_OK)
 	{
-
-	}
-	else if(state == STOP_MCHN)
-	{
-
+		if(rcvd == FLAG)
+		{
+			state = STOP_MCHN;
+			frame[4] = FLAG;
+		}
 	}
 }
 
