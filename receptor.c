@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include "API.h"
 
 #define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
@@ -73,18 +74,31 @@ int main(int argc, char** argv)
 
   do{
     
+    res = read(fd,buf,5);
+    buf[res] = 0;
+    printf("Received: ");
+    for(int i =0; i < 5; i++)
+    {
+      printf(":%x", buf[i]);
+    }
+    printf(":\n");
+
+    char* UA = s_frame(A_EM,C_UA);
+    res = write(fd,UA,5);
+    printf("Sent UA[%d]\n", res);
+    free(UA);
+    /*do{
     int size = 0;
     char chr[2];
     
-    do{
       res = read(fd,chr,1);
       buf[size] = chr[0];
       size++;
       buf[size] = 0;
     }while(chr[0] != '\0');
-
     write(fd,buf,size);
     printf("%s\n", buf);
+  */
 
   }while(buf[0] != 'z');
 

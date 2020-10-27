@@ -75,15 +75,24 @@ int main(int argc, char** argv)
   printf("New termios structure set\n\n");
 
 
-  do{
+  //do{
 
-    gets(buf);
-    res = write(fd,buf,strlen(buf)+1);
-    
-    retRes = read(fd,returnBuf,strlen(buf)+1);
-    printf("%s\n", returnBuf);
+    char* SET = s_frame(A_EM,C_SET);
+    res = write(fd,SET,5);
+    printf("Sent SET[%d]\n", res);
+    free(SET);
 
-  }while(buf[0] != 'z');
+    res = read(fd,buf,5);
+    buf[res] = 0;
+    printf("Received: ");
+    for(int i =0; i < 5; i++)
+    {
+      printf(":%x", buf[i]);
+    }
+    printf(":\n");
+    //retRes = read(fd,returnBuf,strlen(buf)+1);
+
+  //}while(buf[0] != 'z');
 
   /* 
     O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
