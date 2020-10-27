@@ -78,9 +78,26 @@ int main(int argc, char** argv)
   //do{
 
     char* SET = s_frame(A_EM,C_SET);
+    
     res = write(fd,SET,5);
     printf("Sent SET[%d]\n", res);
     free(SET);
+
+    enum s_frame_state_machine state_machine = START_S;
+    char rcvd[1];
+    char frame[5];
+    do
+    {
+      res = read(fd,rcvd,1);
+      change_s_frame_state(&state_machine, rcvd[0], frame);
+    }while(state_machine != STOP_S);
+
+    printf("Received: ");
+    for(int i =0; i < 5; i++)
+    {
+      printf(":%x", frame[i]);
+    }
+    printf(":\n");
 
     /*res = read(fd,buf,5);
     buf[res] = 0;
