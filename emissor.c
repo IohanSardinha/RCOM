@@ -82,7 +82,7 @@ int main(int argc, char** argv)
     printf("Sent SET[%d]\n", res);
     free(SET);
 
-    res = read(fd,buf,5);
+    /*res = read(fd,buf,5);
     buf[res] = 0;
     printf("Received: ");
     for(int i =0; i < 5; i++)

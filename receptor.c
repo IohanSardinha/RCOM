@@ -74,16 +74,24 @@ int main(int argc, char** argv)
 
   do{
     
-    res = read(fd,buf,5);
-    buf[res] = 0;
+    enum s_frame_state_machine state_machine = START_S;
+    char rcvd[1];
+    char frame[6];
+    do
+    {
+      res = read(fd,rcvd,1);
+      change_s_frame_state(&state_machine, rcvd[0], frame);
+    }while(state_machine != STOP_S);
+    frame[6] = 0;
+
     printf("Received: ");
     for(int i =0; i < 5; i++)
     {
-      printf(":%x", buf[i]);
+      printf(":%x", frame[i]);
     }
     printf(":\n");
 
-    char* UA = s_frame(A_EM,C_UA);
+/*    char* UA = s_frame(A_EM,C_UA);
     res = write(fd,UA,5);
     printf("Sent UA[%d]\n", res);
     free(UA);
