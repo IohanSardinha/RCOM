@@ -16,14 +16,18 @@
 
 int flag=1, conta=1;
 
-void atende()                   // atende alarme
-{
-	printf("alarme # %d\n", conta);
-	flag=1;
-	conta++;
-}
 
 volatile int STOP=FALSE;
+volatile int TIME_OUT=FALSE;
+enum s_frame_state_machine state_machine = START_S;
+
+void atende()
+{
+    if(state_machine == STOP_S)
+      STOP = TRUE;
+    else
+      TIME_OUT=TRUE;
+}
 
 int main(int argc, char** argv)
 {
@@ -64,7 +68,9 @@ int main(int argc, char** argv)
   /* set input mode (non-canonical, no echo,...) */
   newtio.c_lflag = 0;
 
-  newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+
+  newtio.c_cc[VTIME]    = 10;   /* inter-character timer unused */
+
   newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
 
@@ -85,24 +91,38 @@ int main(int argc, char** argv)
 
   printf("New termios structure set\n\n");
 
-(void) signal(SIGALRM, atende);
-  //do{
+
 while(conta<4){
 	contaactual = conta;
+=======
+  (void) signal(SIGALRM, atende);
+
+  do
+  {
+    TIME_OUT = FALSE;
+
+
     char* SET = s_frame(A_EM,C_SET);
     
     res = write(fd,SET,5);
-    printf("Sent SET[%d]\n", res);
+    printf("Sent SET\n");
     free(SET);
     
 
-    enum s_frame_state_machine state_machine = START_S;
+    alarm(3);
+
     char rcvd[1];
     char frame[5];
-    alarm(3);
+
+    state_machine = START_S;
+
     do
     {
       res = read(fd,rcvd,1);
+      if(TIME_OUT)
+        break;
+      if(res == 0)
+        continue;
       change_s_frame_state(&state_machine, rcvd[0], frame);
     }while((state_machine != STOP_S) && (contaactual==conta));
     
@@ -134,8 +154,14 @@ while(conta<4){
     }
     printf(":\n");
     //retRes = read(fd,returnBuf,strlen(buf)+1);
+=======
+    }while(state_machine != STOP_S);
+    if(!TIME_OUT)
+      printf("Recived UA\n");
 
-  //}while(buf[0] != 'z');
+  }while(!STOP && state_machine != STOP_S);
+>>>>>>> f5c95f44250bc1610469217b6a4dd7901bd87c73
+
 
   /* 
     O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
