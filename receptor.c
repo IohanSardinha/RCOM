@@ -71,11 +71,11 @@ int main(int argc, char** argv)
 
   printf("New termios structure set\n\n");
 
-
   do{
     
     enum s_frame_state_machine state_machine = START_S;
     char rcvd[1];
+    char frame[5];
     
     do
     {
@@ -83,30 +83,12 @@ int main(int argc, char** argv)
       change_s_frame_state(&state_machine, rcvd[0], frame);
     }while(state_machine != STOP_S);
 
-    printf("Received: ");
-    for(int i =0; i < 5; i++)
-    {
-      printf(":%x", frame[i]);
-    }
-    printf(":\n");
-
+    printf("Received: SET\n");
+    
     char* UA = s_frame(A_EM,C_UA);
     res = write(fd,UA,5);
-    printf("Sent UA[%d]\n", res);
+    printf("Sent: UA\n");
     free(UA);
-
-    /*do{
-    int size = 0;
-    char chr[2];
-    
-      res = read(fd,chr,1);
-      buf[size] = chr[0];
-      size++;
-      buf[size] = 0;
-    }while(chr[0] != '\0');
-    write(fd,buf,size);
-    printf("%s\n", buf);
-  */
 
   }while(buf[0] != 'z');
 

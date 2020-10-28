@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <signal.h>
 #include "API.h"
 
 #define BAUDRATE B38400
@@ -14,6 +15,16 @@
 #define TRUE 1
 
 volatile int STOP=FALSE;
+volatile int TIME_OUT=FALSE;
+enum s_frame_state_machine state_machine = START_S;
+
+void atende()
+{
+    if(state_machine == STOP_S)
+      STOP = TRUE;
+    else
+      TIME_OUT=TRUE;
+}
 
 int main(int argc, char** argv)
 {
@@ -53,8 +64,8 @@ int main(int argc, char** argv)
   /* set input mode (non-canonical, no echo,...) */
   newtio.c_lflag = 0;
 
-  newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-  newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
+  newtio.c_cc[VTIME]    = 10;   /* inter-character timer unused */
+  newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
 
 
@@ -74,42 +85,37 @@ int main(int argc, char** argv)
 
   printf("New termios structure set\n\n");
 
+  (void) signal(SIGALRM, atende);
 
-  //do{
+  do
+  {
+    TIME_OUT = FALSE;
 
     char* SET = s_frame(A_EM,C_SET);
     
     res = write(fd,SET,5);
-    printf("Sent SET[%d]\n", res);
+    printf("Sent SET\n");
     free(SET);
 
-    enum s_frame_state_machine state_machine = START_S;
+    alarm(3);
+
     char rcvd[1];
     char frame[5];
+    state_machine = START_S;
     do
     {
       res = read(fd,rcvd,1);
+      if(TIME_OUT)
+        break;
+      if(res == 0)
+        continue;
       change_s_frame_state(&state_machine, rcvd[0], frame);
     }while(state_machine != STOP_S);
+    if(!TIME_OUT)
+      printf("Recived UA\n");
 
-    printf("Received: ");
-    for(int i =0; i < 5; i++)
-    {
-      printf(":%x", frame[i]);
-    }
-    printf(":\n");
+  }while(!STOP && state_machine != STOP_S);
 
-    /*res = read(fd,buf,5);
-    buf[res] = 0;
-    printf("Received: ");
-    for(int i =0; i < 5; i++)
-    {
-      printf(":%x", buf[i]);
-    }
-    printf(":\n");
-    //retRes = read(fd,returnBuf,strlen(buf)+1);
-
-  //}while(buf[0] != 'z');
 
   /* 
     O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 

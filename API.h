@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #define FLAG	 0x7e
 #define C_SET  	 0x03
 #define C_UA	 0x07
@@ -11,33 +15,32 @@ void printState(enum s_frame_state_machine state)
 {
 	if(state == START_S)
 	{
-		printf("START_S\n");
+		printf("START_S");
 	}
 	else if(state == FLAG_RCV)
 	{
-		printf("FLAG_RCV\n");
+		printf("FLAG_RCV");
 	}
 	else if(state == A_RCV)
 	{
-		printf("A_RCV\n");
+		printf("A_RCV");
 	}
 	else if(state == C_RCV)
 	{
-		printf("C_RCV\n");
+		printf("C_RCV");
 	}
 	else if(state == BCC_OK)
 	{
-		printf("BCC_OK\n");
+		printf("BCC_OK");
 	}
 	else if(state == STOP_S)
 	{
-		printf("STOP_S\n");
+		printf("STOP_S");
 	}
 }
 
 void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* frame)
 {
-	printState(*state);
 	if(*state == START_S)
 	{
 		if(rcvd == FLAG)
@@ -59,7 +62,7 @@ void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* fr
 			*state = A_RCV;	
 			frame[1] = A_RC;
 		}
-		else if(rcvd != FLAG_RCV)
+		else if(rcvd != FLAG)
 			*state = START_S;
 		//else keep state
 	}
