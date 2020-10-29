@@ -72,28 +72,29 @@ int main(int argc, char** argv)
   printf("New termios structure set\n\n");
   
   enum i_frame_state_machine state_machine = START_I;
-	    char rcvd[1];
-	    char frame[9];
-	    char data[3];
-	    char parity=0;
-	    int n=0;
-	    int d=0;
-	    printf("aqui\n");
-	    do
-	    {
-	      res = read(fd,rcvd,1);
-	      printf("%x\n",rcvd[0]);
-	      change_I_frame_state(&state_machine, rcvd[0], frame,parity,n);
-	      printStateI(state_machine);
-	      if (state_machine==BCC_OKI){
+    char rcvd[1];
+    char frame[9];
+    char data[3];
+    char parity=1;
+    int n=0;
+    int d=0;
+    	    
+    do
+    {
+      res = read(fd,rcvd,1);
+      printf("%x\n",rcvd[0]);
+      change_I_frame_state(&state_machine, rcvd[0], frame,parity,n);
+      printStateI(state_machine);
+      if (state_machine==BCC_OKI){
 	      	data[d]=rcvd[0];
+	      	frame[n]=rcvd[0];
 	      	d++;
-	      }
-	      n++;
-	    }while(state_machine != STOP_I);
-	    
-	    
-	    printf("Received: Data\n");
+      }
+      n++;
+    }while(state_machine != STOP_I);
+    
+    
+    printf("Received: Data\n");
 /*
   do{
     

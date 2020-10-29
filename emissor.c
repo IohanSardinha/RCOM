@@ -14,6 +14,8 @@
 #define FALSE 0
 #define TRUE 1
 
+
+
 int flag=1, conta=1;
 
 
@@ -136,9 +138,14 @@ int main(int argc, char** argv)
 
 
 char isla[3]= {0x01,0x01,0x01};
-char* IFRAME = i_frame(isla,A_EM,C_SET);
-    printf("%ld\n", sizeof(IFRAME)/sizeof(IFRAME[0]));
-    res = write(fd,IFRAME,sizeof(IFRAME));
+int frameSize;
+char* IFRAME = i_frame(isla,A_EM,C_SET,3,&frameSize);
+
+    for (int i=0; i<9;i++){
+	printf("%x",IFRAME[i]);}
+    res = write(fd,IFRAME,frameSize);
+    
+    
     printf("Sent Dados\n");
     free(IFRAME);
 

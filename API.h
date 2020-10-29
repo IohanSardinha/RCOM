@@ -223,10 +223,11 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 		{
 			
 			frame[n] = FLAG;
+			printf("%x",frame[0]);
 			
 			if (frame[n-1]== parity){
 			*state=STOP_I;
-			printf("entrou aqui\n");
+			
 			}
 			else if (frame[n-1]== 0x5e||frame[n-1]== 0x5d){
 				if (frame[n-2]==ESC)
@@ -249,9 +250,21 @@ char* s_frame(char A, char C)
 	return frame;
 }
 
-char* i_frame( char* data, char A, char C){
+
+char* i_frame( char* data, char A, char C,int tamanho,int* frameSize){
 	char parity=data[0];
-	char* frame= malloc (sizeof(char)*6+(sizeof(data)/sizeof(data[0])));
+	int oversize=0;
+	
+	for (int i=0; i<tamanho;i++){
+		if (i!=0)parity=parity^data[i];
+		if (data[i] == FLAG || data[i] == ESC){
+			oversize++;		
+		}
+	}
+	
+	if (parity== FLAG || parity== ESC)oversize++;
+	
+	char* frame= malloc (sizeof(char)*(6+tamanho+oversize));
 	frame[0] = FLAG;
 	frame[1] = A;
 	frame[2] = C;
@@ -259,8 +272,8 @@ char* i_frame( char* data, char A, char C){
 	
 	int actual=4;
 	//stuffing and counting parity
-	for (int i=0; i<sizeof(data)/sizeof(data[0]);i++){
-		if (i!=0)parity=parity^data[i];
+	for (int i=0; i<tamanho;i++){
+		
 		
 		if (data[i] == FLAG){
 			frame[i+actual]=0x7d;
@@ -278,19 +291,56 @@ char* i_frame( char* data, char A, char C){
 		
 	}
 	if (parity==FLAG){
-		frame[actual+(sizeof(data)/sizeof(data[0]))]=0x7d;
-		frame[actual+(sizeof(data)/sizeof(data[0]))+1]=0x5e;
+		frame[actual+tamanho]=0x7d;
+		frame[actual+tamanho+1]=0x5e;
 		actual+=1;
 	}
 	else if (parity==ESC){
-		frame[actual+(sizeof(data)/sizeof(data[0]))]=0x7d;
-		frame[actual+(sizeof(data)/sizeof(data[0]))+1]=0x5d;
+		frame[actual+tamanho]=0x7d;
+		frame[actual+tamanho+1]=0x5d;
 		actual+=1;
 	}
-	else{frame[actual+(sizeof(data)/sizeof(data[0]))]=parity;}
+	else{frame[actual+tamanho]=parity;}
 	
-	frame[actual+(sizeof(data)/sizeof(data[0]))+1]= FLAG;
+	frame[actual+tamanho+1]= FLAG;
+	
+	*frameSize=6+tamanho+oversize;
 	
 	return frame;
 
 }
+
+/*
+
+char * destuffing (char * data, int trueness){
+
+char * dados;
+int n=0;
+int BCCpedaco;
+
+if (trueness==1)BCCpedaco=2;
+else BCCpedaco=1;
+
+
+	for (int i=4; i< (tamanho-BCCpedaco); i++){
+		if (data[i]==ESC){}
+
+	}
+	
+
+
+}
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
