@@ -23,10 +23,13 @@ enum s_frame_state_machine state_machine = START_S;
 
 void atende()
 {
-    if(state_machine == STOP_S)
+
+    if(state_machine == STOP_S){
       STOP = TRUE;
-    else
+      conta=1;}
+    else{
       TIME_OUT=TRUE;
+      conta++;}
 }
 
 int main(int argc, char** argv)
@@ -69,7 +72,7 @@ int main(int argc, char** argv)
   newtio.c_lflag = 0;
 
 
-  newtio.c_cc[VTIME]    = 10;   /* inter-character timer unused */
+  newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
 
   newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
@@ -92,9 +95,7 @@ int main(int argc, char** argv)
   printf("New termios structure set\n\n");
 
 
-while(conta<4){
-	contaactual = conta;
-=======
+
   (void) signal(SIGALRM, atende);
 
   do
@@ -115,52 +116,21 @@ while(conta<4){
     char frame[5];
 
     state_machine = START_S;
+    contaactual=conta;
 
-    do
+    while((!TIME_OUT)&& state_machine!=STOP_S)
     {
       res = read(fd,rcvd,1);
       if(TIME_OUT)
         break;
-      if(res == 0)
-        continue;
       change_s_frame_state(&state_machine, rcvd[0], frame);
-    }while((state_machine != STOP_S) && (contaactual==conta));
-    
-    }
-    
-    if (state_machine==STOP_S){
-
-    printf("Received: ");
-    for(int i =0; i < 5; i++)
-    {
-      //printf(":%x", frame[i]);
-    }
-    printf(":\n");
-    
-    }
-    else{
-    printf("Didnt Work");
-    }
-    
+    };
     
    
-
-    /*res = read(fd,buf,5);
-    buf[res] = 0;
-    printf("Received: ");
-    for(int i =0; i < 5; i++)
-    {
-      printf(":%x", buf[i]);
-    }
-    printf(":\n");
-    //retRes = read(fd,returnBuf,strlen(buf)+1);
-=======
-    }while(state_machine != STOP_S);
-    if(!TIME_OUT)
+    if(state_machine==STOP_S)
       printf("Recived UA\n");
 
-  }while(!STOP && state_machine != STOP_S);
->>>>>>> f5c95f44250bc1610469217b6a4dd7901bd87c73
+  }while(!STOP && state_machine != STOP_S && conta<4);
 
 
   /* 
