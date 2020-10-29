@@ -70,7 +70,31 @@ int main(int argc, char** argv)
   }
 
   printf("New termios structure set\n\n");
-
+  
+  enum i_frame_state_machine state_machine = START_I;
+	    char rcvd[1];
+	    char frame[9];
+	    char data[3];
+	    char parity=0;
+	    int n=0;
+	    int d=0;
+	    printf("aqui\n");
+	    do
+	    {
+	      res = read(fd,rcvd,1);
+	      printf("%x\n",rcvd[0]);
+	      change_I_frame_state(&state_machine, rcvd[0], frame,parity,n);
+	      printStateI(state_machine);
+	      if (state_machine==BCC_OKI){
+	      	data[d]=rcvd[0];
+	      	d++;
+	      }
+	      n++;
+	    }while(state_machine != STOP_I);
+	    
+	    
+	    printf("Received: Data\n");
+/*
   do{
     
     enum s_frame_state_machine state_machine = START_S;
@@ -92,8 +116,28 @@ int main(int argc, char** argv)
 
   }while(buf[0] != 'z');
 
+	printf("aqui");
+	    enum i_frame_state_machine state_machine = START_I;
+	    char rcvd[1];
+	    char frame[9];
+	    char parity=0x01;
+	    int n=0;
+	    printf("aqui");
+	    do
+	    {
+	    printf("Entra aqui");
+	      res = read(fd,rcvd,1);
+	      printf("%x",rcvd[0]);
+	      change_I_frame_state(&state_machine, rcvd[0], frame,parity,n);
+	      printStateI(state_machine);
+	      n++;
+	    }while(state_machine != STOP_I);
+	    
+	    
+	    printf("Received: Data\n");
 
-  /* 
+
+
     O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
   */
 

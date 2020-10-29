@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 
   printf("New termios structure set\n\n");
 
-
+/*
 
   (void) signal(SIGALRM, atende);
 
@@ -131,6 +131,16 @@ int main(int argc, char** argv)
       printf("Recived UA\n");
 
   }while(!STOP && state_machine != STOP_S && conta<4);
+
+*/
+
+
+char isla[3]= {0x01,0x01,0x01};
+char* IFRAME = i_frame(isla,A_EM,C_SET);
+    printf("%ld\n", sizeof(IFRAME)/sizeof(IFRAME[0]));
+    res = write(fd,IFRAME,sizeof(IFRAME));
+    printf("Sent Dados\n");
+    free(IFRAME);
 
 
   /* 
