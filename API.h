@@ -312,28 +312,76 @@ char* i_frame( char* data, char A, char C,int tamanho,int* frameSize){
 
 }
 
-/*
 
-char * destuffing (char * data, int trueness){
 
-char * dados;
+char * destuffing (char * data, int tamanho,char * parity){
+
+char * fulltrama= malloc(sizeof(char)*tamanho);
+char * dados=malloc(sizeof(char)*tamanho);
 int n=0;
-int BCCpedaco;
+char parityGiven;
+char parityCalculated;
+int actual=0;
 
-if (trueness==1)BCCpedaco=2;
-else BCCpedaco=1;
 
-
-	for (int i=4; i< (tamanho-BCCpedaco); i++){
-		if (data[i]==ESC){}
-
+	for (int i=0; i< tamanho; i++){
+		if (i<4){fulltrama[actual]=data[i];}
+		else{
+			if (data[i]==ESC){ //tudo com esc
+				if (data[i+2]==FLAG){  //se for o bcc2
+				
+					if (data[i+1]==0x5e){ //se bcc for FLAG
+						parityGiven=FLAG;
+					}
+					else{parityGiven=ESC;}//se bcc for ESC
+					
+					fulltrama[actual]=parityGiven;
+		
+				}
+				else if (data[i+1]==0x5e){//dado igual a FLAG
+					dados[n]=FLAG;
+					fulltrama[actual]=FLAG;
+					if (i==4){parityCalculated=FLAG;}
+					else if (i>4){parityCalculated=parityCalculated^FLAG;}
+				
+				}
+				
+				else if (data[i+1]==0x5d){//dado igual a ESC
+				//printf("somehow it came in here\n");
+					dados[n]=ESC;
+					fulltrama[actual]=ESC;
+					if (i==4){parityCalculated=ESC;}
+					else if (i>4){parityCalculated=parityCalculated^ESC;}
+				}
+				i++;
+				
+			}
+			
+			//sem ESC
+			else if (data[i]==FLAG){fulltrama[actual]=data[i];}//se for a flag
+			else if (data[i+1]==FLAG){fulltrama[actual]=data[i];} //se for o bcc2
+			else{								//dados with no need for stuffing
+				dados[n]=data[i];
+				fulltrama[actual]=data[i];
+				
+				if (i==4){parityCalculated=data[i];}
+					else if (i>4){parityCalculated=parityCalculated^data[i];}
+					
+					
+					//parityCalculated=parityCalculated^data[i];
+				
+			}
+			n++;
+		}
+		actual++;
+	
 	}
 	
-
+*parity=parityCalculated;
 
 }
 
-*/
+
 
 
 
