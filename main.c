@@ -9,21 +9,27 @@ int main(int argc, char const *argv[])
 	if(validateArgs(argc, argv, &role, &port, path) != OK)
 		return -1;
 	
-	printf("%d %d %s\n", role, port, path);
+	if(llopen(port,role) != OK)
+	{
+		fprintf(stderr, "Error: llopen failed!\n");
+	}
+
+
 
 	return 0;
 }
 
-int validateArgs(int argc, char const *argv[], int* role, int* port, char* path){
+int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
+{
 	if(argc < 4)
 	{
-		printf("Error: Too little arguments!\n");
+		fprintf(stderr,"Error: Too little arguments!\n");
 		printUsage();
 		return -1;
 	}
 	else if(argc > 4)
 	{
-		printf("Error: Too many arguments!\n");
+		fprintf(stderr,"Error: Too many arguments!\n");
 		printUsage();
 		return -1;	
 	}
@@ -34,7 +40,7 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 		*role = RECIEVER;
 	else
 	{
-		printf("Error: Wrong role '%s'!\n",argv[1]);
+		fprintf(stderr,"Error: Wrong role '%s'!\n",argv[1]);
 		printUsage();
 		return -1;
 	}
@@ -43,7 +49,7 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 		*port = atoi(argv[2]);
 	else
 	{
-		printf("Error: Port must be a number\n");
+		fprintf(stderr,"Error: Port must be a number\n");
 		printUsage();
 		return -1;
 	}
@@ -51,7 +57,7 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 	strcpy(path, argv[3]);
 	if(path[0] == 0)
 	{
-		printf("Error: Wrong path\n");
+		fprintf(stderr,"Error: Wrong path\n");
 		printUsage();
 		return -1;
 	}
@@ -61,6 +67,6 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 
 void printUsage()
 {
-	printf("Usage:\tmain role[T/R] <port> <path>\n");
-	printf("ex:\tmain t 2 /docs\n");
+	fprintf(stderr,"Usage:\tmain role[T/R] <port> <path>\n");
+	fprintf(stderr,"ex:\tmain t 2 /docs\n");
 }

@@ -2,7 +2,8 @@
 
 struct termios oldtio;
 
-int llopen(int portN, int role){
+int llopen(int portN, int role)
+{
 	
 	struct termios newtio;
 	char port[255];
@@ -41,11 +42,36 @@ int llopen(int portN, int role){
 
 	printf("New termios structure set\n\n");
 
-	switch(role){
+	switch(role)
+	{
 		case TRANSMITTER:
-			break;
+			return openTransmitter(fd);
 		case RECIEVER:
-			break;
+			return openReciever(fd);
 	}
+}
 
+void handleAlarm(){
+	
+}
+
+int openTransmitter(int fd){
+
+	int ret;
+
+	char* set_frame = s_frame(A_TR,C_SET);
+
+	ret = write(fd,set_frame,5);
+
+    free(set_frame);
+
+    (void) signal(SIGALRM, handleAlarm);
+
+	return fd;
+}
+
+int openReciever(int fd){
+
+
+	return fd;
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -12,3 +14,9 @@
 #define BAUDRATE B38400
 
 int llopen(int port, int role);
+
+int openTransmitter(int fd);
+
+int openReciever(int fd);
+
+void handleAlarm();
