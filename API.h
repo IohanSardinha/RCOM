@@ -323,6 +323,7 @@ char* s_frame(char A, char C)
 	return frame;
 }
 
+int stuffing()
 
 char* i_frame( char* data, char A, char C,int tamanho,int* frameSize){
 	char parity=data[0];
