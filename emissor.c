@@ -141,7 +141,7 @@ char isla[3]= {0x01,0x01,0x01};
 int frameSize;
 char* IFRAME = i_frame(isla,A_EM,C_SET,3,&frameSize);
 
-    for (int i=0; i<9;i++){
+    for (int i=0; i<13;i++){
 	printf("%x",IFRAME[i]);}
     res = write(fd,IFRAME,frameSize);
     

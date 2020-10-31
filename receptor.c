@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   
   enum i_frame_state_machine state_machine = START_I;
     char rcvd[1];
-    char frame[9];
+    char *frame= malloc (sizeof(char)*(9));
     char data[3];
     char parity=1;
     int n=0;
@@ -84,10 +84,10 @@ int main(int argc, char** argv)
       res = read(fd,rcvd,1);
       printf("%x\n",rcvd[0]);
       change_I_frame_state(&state_machine, rcvd[0], frame,parity,n);
+      printf("%d",n);
       printStateI(state_machine);
       if (state_machine==BCC_OKI){
 	      	data[d]=rcvd[0];
-	      	frame[n]=rcvd[0];
 	      	d++;
       }
       n++;
@@ -95,6 +95,16 @@ int main(int argc, char** argv)
     
     
     printf("Received: Data\n");
+    
+        for (int i=0; i<10;i++){
+	printf("%x\n",frame[i]);}
+	
+	printf("data\n");
+	
+	    for (int i=0; i<6;i++){
+	printf("%x\n",data[i]);}
+
+    
 /*
   do{
     

@@ -157,6 +157,7 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 		{
 			*state = FLAG_RCVI;
 			frame[0] = FLAG;
+			
 		}
 		//else keep state
 	}
@@ -223,7 +224,7 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 		{
 			
 			frame[n] = FLAG;
-			printf("%x",frame[0]);
+			
 			
 			if (frame[n-1]== parity){
 			*state=STOP_I;
@@ -234,6 +235,7 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 					*state=STOP_I;
 			}
 		}
+		else frame[n]=rcvd;
 		//else esta a ler os dados
 	}
 }
