@@ -74,8 +74,7 @@ int main(int argc, char** argv)
   enum i_frame_state_machine state_machine = START_I;
     char rcvd[1];
     char *frame= malloc (sizeof(char)*(9));
-    char data[3];
-    char parity=1;
+    char data[4];
     int n=0;
     int d=0;
     	    
@@ -83,7 +82,7 @@ int main(int argc, char** argv)
     {
       res = read(fd,rcvd,1);
       printf("%x\n",rcvd[0]);
-      change_I_frame_state(&state_machine, rcvd[0], frame,parity,n);
+      change_I_frame_state(&state_machine, rcvd[0], frame, n);
       printf("%d",n);
       printStateI(state_machine);
       if (state_machine==BCC_OKI){

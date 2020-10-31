@@ -14,6 +14,75 @@ enum s_frame_state_machine{START_S,FLAG_RCV,A_RCV,C_RCV,BCC_OK,STOP_S};
 
 enum i_frame_state_machine{START_I,FLAG_RCVI,A_RCVI,C_RCVI,BCC_OKI,STOP_I};
 
+
+char * destuffing (char * data, int tamanho,char * parity){
+
+char * fulltrama= malloc(sizeof(char)*tamanho);
+char * dados=malloc(sizeof(char)*tamanho);
+int n=0;
+char parityGiven;
+char parityCalculated;
+int actual=0;
+
+
+	for (int i=0; i< tamanho; i++){
+		if (i<4){fulltrama[actual]=data[i];}
+		else{
+			if (data[i]==ESC){ //tudo com esc
+				if (data[i+2]==FLAG){  //se for o bcc2
+				
+					if (data[i+1]==0x5e){ //se bcc for FLAG
+						parityGiven=FLAG;
+					}
+					else{parityGiven=ESC;}//se bcc for ESC
+					
+					fulltrama[actual]=parityGiven;
+		
+				}
+				else if (data[i+1]==0x5e){//dado igual a FLAG
+					dados[n]=FLAG;
+					fulltrama[actual]=FLAG;
+					if (i==4){parityCalculated=FLAG;}
+					else if (i>4){parityCalculated=parityCalculated^FLAG;}
+				
+				}
+				
+				else if (data[i+1]==0x5d){//dado igual a ESC
+				//printf("somehow it came in here\n");
+					dados[n]=ESC;
+					fulltrama[actual]=ESC;
+					if (i==4){parityCalculated=ESC;}
+					else if (i>4){parityCalculated=parityCalculated^ESC;}
+				}
+				i++;
+				
+			}
+			
+			//sem ESC
+			else if (data[i]==FLAG){fulltrama[actual]=data[i];}//se for a flag
+			else if (data[i+1]==FLAG){fulltrama[actual]=data[i];} //se for o bcc2
+			else{								//dados with no need for stuffing
+				dados[n]=data[i];
+				fulltrama[actual]=data[i];
+				
+				if (i==4){parityCalculated=data[i];}
+					else if (i>4){parityCalculated=parityCalculated^data[i];}
+					
+					
+					//parityCalculated=parityCalculated^data[i];
+				
+			}
+			n++;
+		}
+		actual++;
+	
+	}
+	
+*parity=parityCalculated;
+
+}
+
+
 void printState(enum s_frame_state_machine state)
 {
 	if(state == START_S)
@@ -149,7 +218,7 @@ void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* fr
 }
 
 
-void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* frame, char parity, int n)
+void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* frame, int n)
 {
 	if(*state == START_I)
 	{
@@ -224,9 +293,11 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 		{
 			
 			frame[n] = FLAG;
+			char par;
+			char * destuffedFrame= destuffing(frame, n+1,&par);
 			
 			
-			if (frame[n-1]== parity){
+			if (frame[n-1]== par){
 			*state=STOP_I;
 			
 			}
@@ -265,8 +336,9 @@ char* i_frame( char* data, char A, char C,int tamanho,int* frameSize){
 	}
 	
 	if (parity== FLAG || parity== ESC)oversize++;
+	int size=sizeof(char)*(6+tamanho+oversize);
 	
-	char* frame= malloc (sizeof(char)*(6+tamanho+oversize));
+	char* frame= malloc (size);
 	frame[0] = FLAG;
 	frame[1] = A;
 	frame[2] = C;
@@ -313,73 +385,6 @@ char* i_frame( char* data, char A, char C,int tamanho,int* frameSize){
 }
 
 
-
-char * destuffing (char * data, int tamanho,char * parity){
-
-char * fulltrama= malloc(sizeof(char)*tamanho);
-char * dados=malloc(sizeof(char)*tamanho);
-int n=0;
-char parityGiven;
-char parityCalculated;
-int actual=0;
-
-
-	for (int i=0; i< tamanho; i++){
-		if (i<4){fulltrama[actual]=data[i];}
-		else{
-			if (data[i]==ESC){ //tudo com esc
-				if (data[i+2]==FLAG){  //se for o bcc2
-				
-					if (data[i+1]==0x5e){ //se bcc for FLAG
-						parityGiven=FLAG;
-					}
-					else{parityGiven=ESC;}//se bcc for ESC
-					
-					fulltrama[actual]=parityGiven;
-		
-				}
-				else if (data[i+1]==0x5e){//dado igual a FLAG
-					dados[n]=FLAG;
-					fulltrama[actual]=FLAG;
-					if (i==4){parityCalculated=FLAG;}
-					else if (i>4){parityCalculated=parityCalculated^FLAG;}
-				
-				}
-				
-				else if (data[i+1]==0x5d){//dado igual a ESC
-				//printf("somehow it came in here\n");
-					dados[n]=ESC;
-					fulltrama[actual]=ESC;
-					if (i==4){parityCalculated=ESC;}
-					else if (i>4){parityCalculated=parityCalculated^ESC;}
-				}
-				i++;
-				
-			}
-			
-			//sem ESC
-			else if (data[i]==FLAG){fulltrama[actual]=data[i];}//se for a flag
-			else if (data[i+1]==FLAG){fulltrama[actual]=data[i];} //se for o bcc2
-			else{								//dados with no need for stuffing
-				dados[n]=data[i];
-				fulltrama[actual]=data[i];
-				
-				if (i==4){parityCalculated=data[i];}
-					else if (i>4){parityCalculated=parityCalculated^data[i];}
-					
-					
-					//parityCalculated=parityCalculated^data[i];
-				
-			}
-			n++;
-		}
-		actual++;
-	
-	}
-	
-*parity=parityCalculated;
-
-}
 
 
 
