@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "utils.h"
+#include "frame.h"
 
 #define BAUDRATE B38400
 
