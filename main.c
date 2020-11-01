@@ -2,19 +2,27 @@
 
 int main(int argc, char const *argv[])
 {
-	int role;
-	int port;
+	int role, port, fd;
 	char path[255];
 	
 	if(validateArgs(argc, argv, &role, &port, path) != OK)
 		return -1;
 	
-	if(llopen(port,role) != OK)
+	if((fd = llopen(port,role)) < 0)
 	{
 		fprintf(stderr, "Error: llopen failed!\n");
+		return -1;
 	}
 
+	printf("Connection stablised!\n");
 
+	//llwrite()
+
+	if(llclose(fd) < 0)
+	{
+		fprintf(stderr, "Error: llclose failed!\n");	
+		return -1;
+	}
 
 	return 0;
 }
@@ -62,7 +70,7 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 		return -1;
 	}
 
-	return 0;
+	return OK;
 }
 
 void printUsage()

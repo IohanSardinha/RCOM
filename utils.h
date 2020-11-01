@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #define TRANSMITTER 0 
 #define RECIEVER 	1
