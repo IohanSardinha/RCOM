@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "utils.h"
 #include "ll.h"
+#include "reciever.h"
+#include "transmitter.h"
 
 extern bool debug;
 

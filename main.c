@@ -13,10 +13,20 @@ int main(int argc, char const *argv[])
 		fprintf(stderr, "Error: llopen failed!\n");
 		return -1;
 	}
-
 	printf("Connection stablised!\n");
 
-	//llwrite()
+	switch(role)
+	{
+		case TRANSMITTER:
+			if(transmitterMain(fd, path) < 0)
+				return -1;
+			break;
+
+		case RECIEVER:
+			if(recieverMain(fd, path) < 0)
+				return -1;
+			break;
+	}
 
 	if(llclose(fd) < 0)
 	{
