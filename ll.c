@@ -66,10 +66,12 @@ int llclose(int fd){
 	switch(role)
 	{
 		case TRANSMITTER:
-			//disconnectTransmitter()
+			if(send_s_frame_with_response(fd,A_TR,C_DISC, C_DISC) != OK) return -1;
+			if(send_s_frame(fd, A_TR, C_UA) < 0) return -1;
 			break;
 		case RECIEVER:
-			//disconnectReciever()
+			if(read_s_frame(fd,A_TR,C_DISC) < 0) return -1;
+			if(send_s_frame_with_response(fd,A_RC,C_DISC, C_UA) != OK) return -1;
 			break;
 	}
 

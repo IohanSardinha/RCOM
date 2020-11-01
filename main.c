@@ -24,6 +24,8 @@ int main(int argc, char const *argv[])
 		return -1;
 	}
 
+	printf("Successfully disconnected!\n");
+
 	return 0;
 }
 
