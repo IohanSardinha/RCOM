@@ -15,10 +15,6 @@
 
 int llopen(int port, int role);
 
-int openTransmitter(int fd);
-
-int openReciever(int fd);
-
 void handleAlarm();
 
 int llclose(int fd);

@@ -37,9 +37,16 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 	}
 	else if(argc > 4)
 	{
-		fprintf(stderr,"Error: Too many arguments!\n");
-		printUsage();
-		return -1;	
+		if(strcmp(argv[4],"-d") == OK)
+		{
+			debug = true;
+		}
+		else
+		{
+			fprintf(stderr,"Error: Too many arguments!\n");
+			printUsage();
+			return -1;
+		}	
 	}
 
 	if(strcmp(argv[1],"t") == OK)
@@ -69,6 +76,7 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 		printUsage();
 		return -1;
 	}
+
 
 	return OK;
 }
