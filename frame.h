@@ -34,28 +34,28 @@ char* header_to_string(unsigned char C);
 
 void handleAlarm();
 
-char REJTransform(int C);
+unsigned char REJTransform(int C);
 
-char RRTransform (int C);
+unsigned char RRTransform (int C);
 
-char* destuffing (char* data, int tamanho,char* parity, int * numDados);
+unsigned char* destuffing (unsigned char* data, int tamanho,unsigned char* parity, int * numDados);
 
-char* s_frame(char A, char C);
+unsigned char* s_frame(unsigned char A, unsigned char C);
 
-int send_s_frame(int fd, char A, char C);
+int send_s_frame(int fd, unsigned char A, unsigned char C);
 
-int send_s_frame_with_response(int fd, char A, char C, char response);
+int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char response);
 
-int read_s_frame(int fd, char A, char C);
+int read_s_frame(int fd, unsigned char A, unsigned char C);
 
-void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* frame, char A, char C);
+void change_s_frame_state(enum s_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, unsigned char A, unsigned char C);
 
 
-void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* frame, int n, int C);
+void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C);
 
-char* i_frame(char* data, char A, unsigned char C,int tamanho,int* frameSize);
+unsigned char* i_frame(unsigned char* data, unsigned char A, unsigned char C,int tamanho,int* frameSize);
 
-int send_i_frame(int fd, char A, unsigned char C, char* data, int lenght);
+int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght);
 
-int send_i_frame_with_response(int fd, char A, char C, char* data, int lenght, int Ns);
+int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght, int Ns);
 

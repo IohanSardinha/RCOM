@@ -11,3 +11,5 @@
 #define T_FILE_NAME 1
 
 int send_controll_packet(int fd, char C, int T1, char* T2);
+
+char* data_packet(int N, int bytes, char* buff);

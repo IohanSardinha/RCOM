@@ -85,11 +85,13 @@ int llread(int fd, char* packetbuff){
     }while(state_machine != STOP_I);
     
     char naointeressa;
-	packetbuff= destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
+	unsigned char* dstfd = destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
 	
-		for (int i =0; i < numBytes; i++){
-			printf("%x\n", packetbuff[i]);
-		}
+	memcpy(packetbuff,&dstfd, numBytes);
+
+	for (int i =0; i < numBytes; i++){
+		printf("%x\n", packetbuff[i]);
+	}
 	packetB= (packetB +1)%2;	
 	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
 	

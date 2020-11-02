@@ -22,3 +22,16 @@ int send_controll_packet(int fd, char C, int T1, char* T2)
 
 	return OK;
 }
+
+char* data_packet(int N, int bytes, char* buff)
+{
+	char* packet = malloc(sizeof(char)*MAX_SIZE_PACKET);
+    packet[0] = C_DATA;
+    packet[1] = N % 255;
+    packet[2] = bytes/256;
+    packet[3] = bytes%255;
+
+    memcpy(&packet[4], buff, bytes);
+
+    return packet;
+}

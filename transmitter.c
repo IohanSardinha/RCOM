@@ -38,6 +38,20 @@ int transmitterMain(int fd, char* path)
 
 int transmitData(int fd, int fd_file, struct stat stat_file)
 {
-    
+    int N = 0;
+    int bytes;
+    char buff[MAX_SIZE_PACKET];
+
+    while((bytes = read(fd_file, buff, MAX_SIZE_PACKET - 4)) > 0)
+    {
+        char* packet = data_packet(N, bytes, buff);
+
+        if(llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET) < 0)
+            return -1;
+
+        free(packet);
+
+        N++;
+    }
     return OK;   
 }
