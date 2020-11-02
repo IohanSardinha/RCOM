@@ -16,6 +16,8 @@
 
 int llopen(int port, int role);
 
+int llread(int fd, char * packetbuff);
+
 void handleAlarm();
 
 int llclose(int fd);
