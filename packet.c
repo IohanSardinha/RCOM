@@ -35,3 +35,32 @@ char* data_packet(int N, int bytes, char* buff)
 
     return packet;
 }
+
+
+
+int parseSendPacket(char * packet, int numB, char * path){
+	int file;
+	int size;
+	if (packet[0]==C_START){
+		
+		if ((file=open(path,O_RDWR | O_CREAT,0777))<0)return -1;
+		return C_START;
+	}
+	
+	else if (packet[0]==C_END){
+		if (close(file)<0)return -1;
+		return C_END;
+	
+	}
+	
+	else if (packet[0]==C_DATA){
+		size= packet[3]+256*packet[2];
+		if (write(file,&packet[4],size)<0)return -1;
+		return C_DATA;
+	
+	}
+	else{return -1;}
+
+}
+
+

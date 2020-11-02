@@ -15,9 +15,9 @@ int recieverMain(int fd, char* path)
 		packetnumb++;
 		printf("%d",reder);
 		
-		for (int i =0; i < reder; i++){
-			printf("a%x\n", buffer[i]);
-		}
+		packetresp=parseSendPacket(buffer,reder,path);
+		
+		if (packetresp==C_END)break;
 			
 	}
 	return 0;
