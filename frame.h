@@ -28,7 +28,7 @@ extern bool debug;
 
 enum s_frame_state_machine{START_S,FLAG_RCV,A_RCV,C_RCV,BCC_OK,STOP_S};
 
-enum i_frame_state_machine{START_I,FLAG_RCVI,A_RCVI,C_RCVI,BCC_OKI,STOP_I};
+enum i_frame_state_machine{START_I,FLAG_RCVI,A_RCVI,C_RCVI,BCC_OKI,BCC_NOKI,STOP_I};
 
 char* header_to_string(unsigned char C);
 
@@ -58,4 +58,6 @@ char* i_frame(char* data, char A, unsigned char C,int tamanho,int* frameSize);
 int send_i_frame(int fd, char A, unsigned char C, char* data, int lenght);
 
 int send_i_frame_with_response(int fd, char A, char C, char* data, int lenght, int Ns);
+
+int read_i_frame_with_response(int fd, char* packetbuff);
 

@@ -13,6 +13,7 @@ int recieverMain(int fd, char* path)
 		reder=llread(fd,buffer);
 		if(reder<0)return -1;
 		packetnumb++;
+		printf("%d",reder);
 		
 		for (int i =0; i < reder; i++){
 			printf("%x\n", buffer[i]);

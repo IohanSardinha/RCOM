@@ -318,6 +318,7 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 				if (frame[n-2]==ESC)
 					*state=STOP_I;
 			}
+			else{*state=BCC_NOKI;}
 		}
 		else frame[n]=rcvd;
 		//else esta a ler os dados
@@ -528,5 +529,56 @@ int send_i_frame_with_response(int fd, char A, char C, char* data, int lenght, i
 
 	
 	return size;
+}
+
+
+int read_i_frame_with_response(int fd, char * packetbuff){
+
+	int numBytes=0;
+	static int packetB=0;	
+	enum i_frame_state_machine state_machine = START_I;
+    char rcvd[1];
+    char* frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
+    int res;
+    int n=0;
+    
+    
+    //time out para o read
+    TIME_OUT = false;
+    (void) signal(SIGALRM, handleAlarm);
+    alarm(read_time_out);
+    
+    	    
+    do
+    {
+      res = read(fd,rcvd,1);
+      if (TIME_OUT)return -1;
+      if (res==0)return -1;
+      if (state_machine==BCC_NOKI){
+      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)return -2;      	
+      	break;}
+      change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
+      n++;
+      alarm(read_time_out);
+    }while(state_machine != STOP_I);
+    
+    if(state_machine == STOP_I){
+    char naointeressa;
+	packetbuff= destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
+	
+	printf("done receiving\n");
+	
+
+	packetB= (packetB +1)%2;	
+	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
+	
+		
+	return numBytes;
+	
+	}
+	else return -1;
+
+
+
 }
 

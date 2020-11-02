@@ -3,6 +3,7 @@
 int role, Ns = 0;
 struct termios oldtio;
 
+
 int llopen(int portN, int role_)
 {
 	
@@ -63,38 +64,9 @@ int llopen(int portN, int role_)
 
 
 int llread(int fd, char* packetbuff){
-	int numBytes=0;
-	static int packetB=0;	
-	enum i_frame_state_machine state_machine = START_I;
-    char rcvd[1];
-    char* frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
-    char* stuffedpacket= malloc (sizeof(char)*(MAX_SIZE_FRAME));
-    char* packet= malloc (sizeof(char)*(MAX_SIZE_PACKET));
-    int res;
-    int n=0;
-    
-    	    
-    do
-    {
-      res = read(fd,rcvd,1);
-      if (res<0){
-      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)return -2;      	
-      	return -1;}
-      change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
-      n++;
-    }while(state_machine != STOP_I);
-    
-    char naointeressa;
-	packetbuff= destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
+	int res= read_i_frame_with_response(fd,packetbuff);
 	
-		for (int i =0; i < numBytes; i++){
-			printf("%x\n", packetbuff[i]);
-		}
-	packetB= (packetB +1)%2;	
-	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
-	
-		
-	return numBytes;
+	return res;
 }
 
 
