@@ -1,5 +1,7 @@
 #include "utils.h"
 
+bool debug = false;
+
 int is_number(const char* str)
 {
 	

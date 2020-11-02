@@ -1,14 +1,12 @@
 #include "frame.h"
 
-bool debug = false;
-
 int tries;
 enum s_frame_state_machine state_machine;
 volatile bool TIME_OUT;
 
 static int send_time_out = 3, read_time_out = 7, send_tries = 3; 
 
-char* header_to_string(char C)
+char* header_to_string(unsigned char C)
 {
 	switch(C)
 	{
@@ -18,8 +16,20 @@ char* header_to_string(char C)
 			return "UA";
 		case C_DISC:
 			return "DISC";
+		case C_I_0:
+			return "C_I, Ns = 0";
+		case C_I_1:
+			return "C_I, Ns = 1";
+		case C_RR_0:
+			return "RR, Ns = 0";
+		case C_RR_1:
+			return "RR, Ns = 1";
+		case C_REJ_0:
+			return "REJ, Ns = 0";
+		case C_REJ_1:
+			return "REJ, Ns = 1";
 	}
-	return "";
+	return "NONE";
 }
 
 void handleAlarm(){
@@ -39,16 +49,13 @@ char* s_frame(char A, char C)
 
 int send_s_frame(int fd,char A, char C)
 {
-	int ret;
 
-	char* set_frame = s_frame(A,C);
+	unsigned char* frame = s_frame(A,C);
 
-	ret = write(fd,set_frame,S_FRAME_SIZE);
-
-	if(ret < 0)
+	if(write(fd,frame,S_FRAME_SIZE) < 0)
 		return -1;
 
-    free(set_frame);
+    free(frame);
 
     if(debug) printf("Sent: %s\n", header_to_string(C));
 
@@ -58,6 +65,8 @@ int send_s_frame(int fd,char A, char C)
 int send_s_frame_with_response(int fd, char A, char C, char response)
 {
 	int ret;
+    unsigned char rcvd[1];
+    unsigned char frame[5];
 
     tries = 0;
     state_machine = START_S;
@@ -66,27 +75,21 @@ int send_s_frame_with_response(int fd, char A, char C, char response)
     
     do
   	{
+      	tries++;
 	    TIME_OUT = false;
 
 		if(send_s_frame(fd, A, C) != OK) return -1;
 
 	    alarm(send_time_out);
 
-	    char rcvd[1];
-	    char frame[5];
-
 	    state_machine = START_S;
-
 	    
 	    do{
 	      ret = read(fd,rcvd,1);
-	      if(TIME_OUT)
-	      { 
-	      	tries++;
+	      if(TIME_OUT) 
 	      	break;
-	      }
 	      if(ret == 0) continue;
-	      change_s_frame_state(&state_machine, rcvd[0], frame, (A == A_TR)?A_RC:A_TR, response);
+	      change_s_frame_state(&state_machine, rcvd[0], frame, A, response);
 	    }while(state_machine!=STOP_S);
 	    
   	}while(state_machine != STOP_S && tries<send_tries);
@@ -100,8 +103,8 @@ int send_s_frame_with_response(int fd, char A, char C, char response)
 
 int read_s_frame(int fd, char A, char C)
 {
-	char rcvd[1];
-    char frame[5];
+	unsigned char rcvd[1];
+    unsigned char frame[5];
     
     int res;
 
@@ -162,6 +165,26 @@ void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* fr
 				*state = C_RCV;
 				frame[2] = C;
 			}
+			else if(rcvd == C_RR_0)
+			{
+				*state = C_RCV;
+				frame[2] = C_RR_0;	
+			}
+			else if(rcvd == C_RR_1)
+			{
+				*state = C_RCV;
+				frame[2] = C_RR_1;	
+			}
+			else if(rcvd == C_REJ_0)
+			{
+				*state = C_RCV;
+				frame[2] = C_REJ_0;	
+			}
+			else if(rcvd == C_REJ_1)
+			{
+				*state = C_RCV;
+				frame[2] = C_REJ_1;	
+			}
 			else if(rcvd == FLAG)
 			{
 				*state = FLAG_RCV;
@@ -200,4 +223,122 @@ void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* fr
 			
 			break;
 	}
+}
+
+char* i_frame( char* data, char A, unsigned char C, int tamanho, int* frameSize){
+	char parity=data[0];
+	int oversize=0;
+	
+	for (int i=0; i<tamanho;i++){
+		if (i!=0)parity=parity^data[i];
+		if (data[i] == FLAG || data[i] == ESC){
+			oversize++;		
+		}
+	}
+	
+	if (parity== FLAG || parity== ESC)oversize++;
+	int size=sizeof(char)*(6+tamanho+oversize);
+	
+	char* frame= malloc (size);
+	frame[0] = FLAG;
+	frame[1] = A;
+	frame[2] = C;
+	frame[3] = A^C;
+	
+	int actual=4;
+	//stuffing and counting parity
+	for (int i=0; i<tamanho;i++){
+		
+		if (data[i] == FLAG){
+			frame[i+actual]=0x7d;
+			frame[i+actual+1]=0x5e;
+			actual+=1;
+			
+		}else if (data[i]==ESC){
+			frame[i+actual]=0x7d;
+			frame[i+actual+1]=0x5d;
+			actual+=1;
+		
+		}else{
+			frame[i+actual]=data[i];
+		}
+		
+	}
+	if (parity==FLAG){
+		frame[actual+tamanho]=0x7d;
+		frame[actual+tamanho+1]=0x5e;
+		actual+=1;
+	}
+	else if (parity==ESC){
+		frame[actual+tamanho]=0x7d;
+		frame[actual+tamanho+1]=0x5d;
+		actual+=1;
+	}
+	else{frame[actual+tamanho]=parity;}
+	
+	frame[actual+tamanho+1]= FLAG;	
+	
+	*frameSize=6+tamanho+oversize;
+	
+	return frame;
+
+}
+
+int send_i_frame(int fd, char A, unsigned char C, char* data, int lenght)
+{
+	int frame_size, res;
+	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
+
+	if(write(fd, frame, frame_size) < 0)
+		return -1;
+
+	free(frame);
+
+	if(debug) printf("Sent: %s\n",header_to_string(C));
+
+	return frame_size;
+}
+
+int send_i_frame_with_response(int fd, char A, char C, char* data, int lenght, int Ns)
+{
+	int ret, size;
+    unsigned char rcvd[1];
+	unsigned char frame[5];
+
+    tries = 0;
+    state_machine = START_S;
+
+    (void) signal(SIGALRM, handleAlarm);
+    
+    do
+  	{
+	    tries++;
+	    
+	    TIME_OUT = false;
+
+		if((size = send_i_frame(fd, A, C, data, lenght)) < 0) return -1;
+
+	    alarm(send_time_out);
+
+	    state_machine = START_S;
+	    
+	    do{
+	      ret = read(fd,rcvd,1);
+	      if(TIME_OUT)
+	      	break;
+	      if(ret == 0) continue;
+	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
+	    }while(state_machine!=STOP_S);
+
+	    if((!(frame[2] == C_RR_0 && Ns == 1) || (frame[2] == C_RR_1 && Ns == 0)))
+	    	state_machine = START_S;
+	    
+    	if(debug && !TIME_OUT) printf("Recieved response: %s\n", frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
+  	
+  	}while(state_machine != STOP_S && tries<send_tries);
+
+  	if(tries >= send_tries) return -1;
+
+	
+	return size;
 }

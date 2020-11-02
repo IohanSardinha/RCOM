@@ -16,6 +16,6 @@
 
 int llopen(int port, int role);
 
-void handleAlarm();
+int llwrite(int fd, char* buffer, int lenght);
 
 int llclose(int fd);

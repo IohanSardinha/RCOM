@@ -1,6 +1,6 @@
 #include "ll.h"
 
-int role;
+int role, Ns = 0;
 struct termios oldtio;
 
 int llopen(int portN, int role_)
@@ -43,7 +43,7 @@ int llopen(int portN, int role_)
 		return -1;
 	}
 
-	printf("New termios structure set\n\n");
+	printf("New termios structure set\n");
 
 	switch(role_)
 	{
@@ -53,25 +53,35 @@ int llopen(int portN, int role_)
 			break;
 
 		case RECIEVER:
-			
 			if(read_s_frame(fd, A_TR, C_SET) != OK)return -1;
-    		if(send_s_frame(fd, A_RC, C_UA) != OK )return -1;
+    		if(send_s_frame(fd, A_TR, C_UA) != OK )return -1;
     		break;	
 	}
 
 	return fd;
 }
 
+int llwrite(int fd, char* buffer, int lenght)
+{
+	int res = send_i_frame_with_response(fd,A_TR, (Ns == 0)?C_I_0:C_I_1 , buffer, lenght, Ns);
+
+	if(res < 0)
+		return -1;
+	
+	Ns = (Ns +1) % 2;
+	return res;
+}
+
 int llclose(int fd){
 	switch(role)
 	{
 		case TRANSMITTER:
-			if(send_s_frame_with_response(fd,A_TR,C_DISC, C_DISC) != OK) return -1;
+			if(send_s_frame_with_response(fd,A_TR,C_DISC,C_DISC) != OK) return -1;
 			if(send_s_frame(fd, A_TR, C_UA) < 0) return -1;
 			break;
 		case RECIEVER:
 			if(read_s_frame(fd,A_TR,C_DISC) < 0) return -1;
-			if(send_s_frame_with_response(fd,A_RC,C_DISC, C_UA) != OK) return -1;
+			if(send_s_frame_with_response(fd,A_TR,C_DISC, C_UA) != OK) return -1;
 			break;
 	}
 

@@ -7,10 +7,10 @@ int main(int argc, char const *argv[])
 	
 	if(validateArgs(argc, argv, &role, &port, path) != OK)
 		return -1;
-	
+
 	if((fd = llopen(port,role)) < 0)
 	{
-		fprintf(stderr, "Error: llopen failed!\n");
+		fprintf(stderr, "Error: Could not stablish connection!\n");
 		return -1;
 	}
 	printf("Connection stablised!\n");
@@ -30,7 +30,7 @@ int main(int argc, char const *argv[])
 
 	if(llclose(fd) < 0)
 	{
-		fprintf(stderr, "Error: llclose failed!\n");	
+		fprintf(stderr, "Error: Could not disconnect properly!\n");	
 		return -1;
 	}
 
@@ -61,9 +61,9 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 		}	
 	}
 
-	if(strcmp(argv[1],"t") == OK)
+	if(strcmp(argv[1],"t") == OK || strcmp(argv[1],"T") == OK)
 		*role = TRANSMITTER;
-	else if(strcmp(argv[1],"r") == OK)
+	else if(strcmp(argv[1],"r") == OK || strcmp(argv[1],"R") == OK)
 		*role = RECIEVER;
 	else
 	{
@@ -88,8 +88,6 @@ int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 		printUsage();
 		return -1;
 	}
-
-
 	return OK;
 }
 
