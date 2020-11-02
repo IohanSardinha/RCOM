@@ -62,16 +62,17 @@ int llopen(int portN, int role_)
 	return fd;
 }
 
-int llread(int fd, char * packetbuff){
+int llread(int fd, char* packetbuff){
+	int numBytes=0;
 	static int packetB=0;	
 	enum i_frame_state_machine state_machine = START_I;
     char rcvd[1];
-    char *frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
-    char stuffedpacket= malloc (sizeof(char)*(MAX_SIZE_FRAME));
-    char packet= malloc (sizeof(char)*(MAX_SIZE_PACKET));
-    
+    char* frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
+    char* stuffedpacket= malloc (sizeof(char)*(MAX_SIZE_FRAME));
+    char* packet= malloc (sizeof(char)*(MAX_SIZE_PACKET));
+    int res;
     int n=0;
-    int numBytes=0;
+    
     	    
     do
     {
@@ -83,20 +84,21 @@ int llread(int fd, char * packetbuff){
       n++;
     }while(state_machine != STOP_I);
     
-	destuffedframe= destuffing(frame,n+1,&numBytes);  //just used numBytes to reuse a variable
-	numBytes=0;
-	
+    char naointeressa;
+	packetbuff= destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
+	/*
 	for (int i=4;i<n-1; i++){
 	
 		packet[numBytes]=destuffedframe[i];
 		numBytes++;
 	}
 	packetbuff=packet;
-	
+	*/
 	packetB= (packetB +1)%2;	
-	if((send_s_frame(fd, A_TR, RRJTransform(packetB)))!=OK)return -2; 
+	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
+	
 		
-	int numBytes;
+	return numBytes;
 }
 
 

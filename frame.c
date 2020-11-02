@@ -282,7 +282,8 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 			
 			frame[n] = FLAG;
 			char par;
-			char * destuffedFrame= destuffing(frame, n+1,&par);
+			int naointeressa;
+			char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
 			
 			
 			if (frame[n-1]== par){
@@ -301,14 +302,14 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 
 
 
-char * destuffing (char * data, int tamanho,char * parity){
+char* destuffing (char * data, int tamanho,char * parity,int* numDados){
 
-char * fulltrama= malloc(sizeof(char)*tamanho);
-char * dados=malloc(sizeof(char)*tamanho);
-int n=0;
-char parityGiven;
-char parityCalculated;
-int actual=0;
+	char* fulltrama= malloc(sizeof(char)*tamanho);
+	char* dados=malloc(sizeof(char)*tamanho);
+	int n=0;
+	char parityGiven;
+	char parityCalculated;
+	int actual=0;
 
 
 	for (int i=0; i< tamanho; i++){
@@ -364,12 +365,14 @@ int actual=0;
 	
 	}
 	
-*parity=parityCalculated;
+	*parity=parityCalculated;
+	*numDados=n;
+	
+	return dados;
 
 }
 
 char REJTransform(int C){
-
 	if (C==0)return 0x01;
 	else {return 0x81;}
 
@@ -378,9 +381,9 @@ char REJTransform(int C){
 
 
 char RRTransform (int C){
-
 	if (C==0)return 0x05;
 	else {return 0x85;}
+
 
 }
 

@@ -2,6 +2,7 @@
 
 int recieverMain(int fd, char* path)
 {
+/*
 	int reder;
 	int packetnumb=0;
 	int packetresp;
@@ -15,5 +16,9 @@ int recieverMain(int fd, char* path)
 	
 	
 	}
+	return 0;
+	
+	*/
+	return 0;
 	
 }
