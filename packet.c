@@ -29,13 +29,9 @@ char* data_packet(int N, int bytes, char* buff)
     packet[0] = C_DATA;
     packet[1] = N % 255;
     packet[2] = bytes/256;
-    packet[3] = bytes%255;
+    packet[3] = bytes%256;
 
     memcpy(&packet[4], buff, bytes);
-
-    for(int i =0; i < bytes+4; i++)
-    	printf("%x:", packet[i]);
-    printf("\n");
 
     return packet;
 }
@@ -43,9 +39,6 @@ char* data_packet(int N, int bytes, char* buff)
 
 
 int parseSendPacket(unsigned char* packet, int numB, char * path){
-	for(int i = 0; i < numB; i++)
-		printf("%x:", packet[i]);
-	printf("\n");
 
 	static int file;
 	unsigned size;
