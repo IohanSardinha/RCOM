@@ -10,10 +10,10 @@ int main(int argc, char const *argv[])
 
 	if((fd = llopen(port,role)) < 0)
 	{
-		fprintf(stderr, "Error: Could not stablish connection!\n");
+		fprintf(stderr, "Error: Could not establish connection!\n");
 		return -1;
 	}
-	printf("Connection stablised!\n");
+	printf("Connection established!\n");
 
 	switch(role)
 	{

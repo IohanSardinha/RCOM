@@ -44,10 +44,16 @@ int transmitData(int fd, int fd_file, struct stat stat_file)
     int N = 0;
     int bytes;
     char buff[MAX_SIZE_PACKET];
+    float progress=0;
 
     while((bytes = read(fd_file, buff, MAX_SIZE_PACKET - 4)) > 0)
     {
         char* packet = data_packet(N, bytes, buff);
+        progress+=bytes;
+        system("clear");
+        printf("New termios structure set\nConnection established!\n");
+        print_progress(progress,stat_file.st_size);
+        //sleep(1);
 
         if((llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET)) < 0)
             return -1;
@@ -58,3 +64,30 @@ int transmitData(int fd, int fd_file, struct stat stat_file)
     }
     return OK;   
 }
+
+void print_progress(float progress, int max){
+	const char prefix[]= "Progress: [";
+	const char suffix[]= "]";
+	const size_t prefix_length= sizeof(prefix)-1;
+	const size_t suffix_length = sizeof(suffix)-1;
+	char * buffer= calloc(max+prefix_length+suffix_length+1,1); //+1 for end
+	int i=0;
+	
+	strcpy(buffer, prefix);
+	
+	progress=progress/max*100;
+	for (; i< 100; ++i){
+	
+		buffer[prefix_length+i]=i<progress?'#':' ';		
+	}	
+	
+	strcpy(&buffer[prefix_length +i],suffix);
+	printf("\b%c[2K\r%s %d%%\n", 27, buffer,(int)progress);
+	
+	fflush(stdout);
+	free(buffer);
+	
+
+}
+
+
