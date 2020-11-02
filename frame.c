@@ -36,9 +36,9 @@ void handleAlarm(){
 	TIME_OUT = true;
 }
 
-char* s_frame(char A, char C)
+unsigned char* s_frame(unsigned char A, unsigned char C)
 {
-	char* frame = malloc(sizeof(char)*S_FRAME_SIZE);
+	unsigned char* frame = malloc(sizeof(unsigned char)*S_FRAME_SIZE);
 	frame[0] = FLAG;
 	frame[1] = A;
 	frame[2] = C;
@@ -47,7 +47,7 @@ char* s_frame(char A, char C)
 	return frame;
 }
 
-int send_s_frame(int fd,char A, char C)
+int send_s_frame(int fd,unsigned char A, unsigned char C)
 {
 
 	unsigned char* frame = s_frame(A,C);
@@ -62,7 +62,7 @@ int send_s_frame(int fd,char A, char C)
 	return OK;
 }
 
-int send_s_frame_with_response(int fd, char A, char C, char response)
+int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char response)
 {
 	int ret;
     unsigned char rcvd[1];
@@ -101,7 +101,7 @@ int send_s_frame_with_response(int fd, char A, char C, char response)
 	return OK;
 }
 
-int read_s_frame(int fd, char A, char C)
+int read_s_frame(int fd, unsigned char A, unsigned char C)
 {
 	unsigned char rcvd[1];
     unsigned char frame[5];
@@ -130,7 +130,7 @@ int read_s_frame(int fd, char A, char C)
     return OK;
 }
 
-void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* frame, char A, char C)
+void change_s_frame_state(enum s_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, unsigned char A, unsigned char C)
 {
 	switch(*state)
 	{
@@ -227,7 +227,7 @@ void change_s_frame_state(enum s_frame_state_machine* state, char rcvd, char* fr
 
 
 
-void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* frame, int n, int C)
+void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C)
 {
 	if(*state == START_I)
 	{
@@ -305,9 +305,9 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 		{
 			
 			frame[n] = FLAG;
-			char par;
+			unsigned char par;
 			int naointeressa;
-			char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
+			unsigned char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
 			
 			
 			if (frame[n-1]== par){
@@ -327,13 +327,13 @@ void change_I_frame_state(enum i_frame_state_machine* state, char rcvd, char* fr
 
 
 
-char* destuffing (char * data, int tamanho,char * parity,int* numDados){
+unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * parity,int* numDados){
 
-	char* fulltrama= malloc(sizeof(char)*tamanho);
-	char* dados=malloc(sizeof(char)*tamanho);
+	unsigned char* fulltrama= malloc(sizeof(unsigned char)*tamanho);
+	unsigned char* dados=malloc(sizeof(unsigned char)*tamanho);
 	int n=0;
-	char parityGiven;
-	char parityCalculated;
+	unsigned char parityGiven;
+	unsigned char parityCalculated;
 	int actual=0;
 
 
@@ -397,7 +397,7 @@ char* destuffing (char * data, int tamanho,char * parity,int* numDados){
 
 }
 
-char REJTransform(int C){
+unsigned char REJTransform(int C){
 	if (C==0)return C_REJ_0 ;
 	else {return C_REJ_1;}
 
@@ -405,15 +405,15 @@ char REJTransform(int C){
 
 
 
-char RRTransform (int C){
+unsigned char RRTransform (int C){
 	if (C==0)return C_RR_0;
 	else {return C_RR_1;}
 
 
 }
 
-char* i_frame( char* data, char A, unsigned char C, int tamanho, int* frameSize){
-	char parity=data[0];
+unsigned char* i_frame( unsigned char* data, unsigned char A, unsigned char C, int tamanho, int* frameSize){
+	unsigned char parity=data[0];
 	int oversize=0;
 	
 	for (int i=0; i<tamanho;i++){
@@ -424,9 +424,9 @@ char* i_frame( char* data, char A, unsigned char C, int tamanho, int* frameSize)
 	}
 	
 	if (parity== FLAG || parity== ESC)oversize++;
-	int size=sizeof(char)*(6+tamanho+oversize);
+	int size=sizeof(unsigned char)*(6+tamanho+oversize);
 	
-	char* frame= malloc (size);
+	unsigned char* frame= malloc (size);
 	frame[0] = FLAG;
 	frame[1] = A;
 	frame[2] = C;
@@ -471,7 +471,7 @@ char* i_frame( char* data, char A, unsigned char C, int tamanho, int* frameSize)
 
 }
 
-int send_i_frame(int fd, char A, unsigned char C, char* data, int lenght)
+int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght)
 {
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
@@ -486,7 +486,7 @@ int send_i_frame(int fd, char A, unsigned char C, char* data, int lenght)
 	return frame_size;
 }
 
-int send_i_frame_with_response(int fd, char A, char C, char* data, int lenght, int Ns)
+int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght, int Ns)
 {
 	int ret, size;
     unsigned char rcvd[1];
@@ -518,8 +518,11 @@ int send_i_frame_with_response(int fd, char A, char C, char* data, int lenght, i
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
-	    if((!(frame[2] == C_RR_0 && Ns == 1) || (frame[2] == C_RR_1 && Ns == 0)))
+	    if((frame[2] == C_RR_0 && Ns == 0) || (frame[2] == C_RR_1 && Ns == 1) || (frame[2] == C_REJ_1) || (frame[2] == C_REJ_0))
+		{
 	    	state_machine = START_S;
+			continue;
+		}
 	    
     	if(debug && !TIME_OUT) printf("Recieved response: %s\n", frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
   	
@@ -564,9 +567,10 @@ int read_i_frame_with_response(int fd, char * packetbuff){
     
     if(state_machine == STOP_I){
     char naointeressa;
-	packetbuff= destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
 	
-	printf("done receiving\n");
+	unsigned char* dstfd = destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
+	
+	memcpy(packetbuff,&dstfd, numBytes);
 	
 
 	packetB= (packetB +1)%2;	

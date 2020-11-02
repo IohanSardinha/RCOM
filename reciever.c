@@ -16,9 +16,8 @@ int recieverMain(int fd, char* path)
 		printf("%d",reder);
 		
 		for (int i =0; i < reder; i++){
-			printf("%x\n", buffer[i]);
+			printf("a%x\n", buffer[i]);
 		}
-	
 			
 	}
 	return 0;
