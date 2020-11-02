@@ -14,8 +14,8 @@
 #define ESC 	 0x7d
 
 
-#define MAX_SIZE_FRAME 64
-#define MAX_SIZE_PACKET  32
+#define MAX_SIZE_PACKET 450 
+#define MAX_SIZE_FRAME (MAX_SIZE_PACKET *2)
 
 
 int is_number(const char* str);

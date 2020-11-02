@@ -15,7 +15,10 @@ int transmitterMain(int fd, char* path)
         return -1;
     }
 
-    if(send_controll_packet(fd,C_START, stat_file.st_size, path) < 0)
+    char* file_name;
+    (file_name = strrchr(path, '/')) ? ++file_name : (file_name = path);
+
+    if(send_controll_packet(fd,C_START, stat_file.st_size, file_name) < 0)
     {
         fprintf(stderr, "Error: Failed to start sending data!\n");
         return -1;
@@ -27,7 +30,7 @@ int transmitterMain(int fd, char* path)
         return -1;
     }    
 
-    if(send_controll_packet(fd,C_END, stat_file.st_size, path) < 0)
+    if(send_controll_packet(fd,C_END, stat_file.st_size, file_name) < 0)
     {
         fprintf(stderr, "Error: Failed to end sending data!\n");
         return -1;
