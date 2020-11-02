@@ -563,7 +563,6 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
       res = read(fd,rcvd,1);
       if (TIME_OUT)return -1;
       if (res==0)continue;
-      //printf("%x\n", rcvd[0]);
       if (state_machine==BCC_NOKI){
       	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)return -2;      	
       	break;}

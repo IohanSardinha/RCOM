@@ -11,7 +11,10 @@ int recieverMain(int fd, char* path)
 	while(1){
 		unsigned char buffer[MAX_SIZE_FRAME] = {0};
 		reder=llread(fd,buffer);
-		if(reder<0)return -1;
+		if(reder<0){
+			fprint(stderr,"Error: Something went wrong while reading\n");
+			return -1;
+		}
 		packetnumb++;
 		
 		packetresp=parseSendPacket(buffer,reder,path);
