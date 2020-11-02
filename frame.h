@@ -45,7 +45,7 @@ unsigned char* s_frame(unsigned char A, unsigned char C);
 
 int send_s_frame(int fd, unsigned char A, unsigned char C);
 
-int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char response);
+int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char response, unsigned char responder);
 
 int read_s_frame(int fd, unsigned char A, unsigned char C);
 

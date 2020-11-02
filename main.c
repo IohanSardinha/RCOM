@@ -41,58 +41,124 @@ int main(int argc, char const *argv[])
 
 int validateArgs(int argc, char const *argv[], int* role, int* port, char* path)
 {
+	int optionals = 0;
 	if(argc < 4)
 	{
-		fprintf(stderr,"Error: Too little arguments!\n");
+		fprintf(stderr,"Error: Too few arguments!\n");
 		printUsage();
 		return -1;
 	}
-	else if(argc > 4)
+	else if(argc > 9)
 	{
-		if(strcmp(argv[4],"-d") == OK)
-		{
-			debug = true;
-		}
-		else
-		{
-			fprintf(stderr,"Error: Too many arguments!\n");
-			printUsage();
-			return -1;
-		}	
-	}
-
-	if(strcmp(argv[1],"t") == OK || strcmp(argv[1],"T") == OK)
-		*role = TRANSMITTER;
-	else if(strcmp(argv[1],"r") == OK || strcmp(argv[1],"R") == OK)
-		*role = RECIEVER;
-	else
-	{
-		fprintf(stderr,"Error: Wrong role '%s'!\n",argv[1]);
+		fprintf(stderr,"Error: Too many arguments!\n");
 		printUsage();
 		return -1;
 	}
 
-	if(is_number(argv[2]))
-		*port = atoi(argv[2]);
-	else
+	for(int i = 1; i < argc; i++)
 	{
-		fprintf(stderr,"Error: Port must be a number\n");
+			if(strcmp(argv[i],"-t") == OK || strcmp(argv[i],"-T") == OK)
+				*role = TRANSMITTER;
+			else if(strcmp(argv[i],"-r") == OK || strcmp(argv[i],"-R") == OK)
+				*role = RECIEVER;
+
+			else if(strcmp(argv[i],"-p") == OK)
+			{
+				if(is_number(argv[i+1]))
+				{
+					*port = atoi(argv[i+1]);
+					i++;
+				}
+				else
+				{
+					fprintf(stderr,"Error: Port must be a number\n");
+					printUsage();
+					return -1;
+				}
+			}
+
+			else if(strcmp(argv[i],"-f") == OK)
+			{
+				strcpy(path, argv[i+1]);
+				if(path[0] == 0)
+				{
+					fprintf(stderr,"Error: Bad path\n");
+					printUsage();
+					return -1;
+				}
+				i++;
+			}
+
+			else if(strcmp(argv[i],"-d") == OK)
+			{
+				debug = true;
+				optionals++;
+			}
+
+			else if(strncmp(argv[i],"--send-time-out=",16) == OK)
+			{
+				if(is_number(argv[i]+16))
+				{
+					send_time_out = atoi(argv[i]+16);
+					optionals++;
+				}
+				else
+				{
+					fprintf(stderr,"Error: Send time out must be a number\n");
+					printUsage();
+					return -1;
+				}
+			}
+
+			else if(strncmp(argv[i],"--read-time-out=",16) == OK)
+			{
+				if(is_number(argv[i]+16))
+				{
+					read_time_out = atoi(argv[i]+16);
+					optionals++;
+				}
+				else
+				{
+					fprintf(stderr,"Error: Read time out must be a number\n");
+					printUsage();
+					return -1;
+				}
+			}
+
+			else if(strncmp(argv[i],"--send-tries=",13) == OK)
+			{
+				if(is_number(argv[i]+13))
+				{
+					send_tries = atoi(argv[i]+13);
+					optionals++;
+				}
+				else
+				{
+					fprintf(stderr,"Error: Send time out must be a number\n");
+					printUsage();
+					return -1;
+				}
+			}
+			else
+			{
+				fprintf(stderr,"Error: Unknown argument '%s'\n", argv[i]);
+				printUsage();
+				return -1;
+			}
+	}
+
+	if(argc > 6 + optionals)
+	{
+		fprintf(stderr,"Error: Too many arguments!\n");
 		printUsage();
 		return -1;
 	}
 
-	strcpy(path, argv[3]);
-	if(path[0] == 0)
-	{
-		fprintf(stderr,"Error: Wrong path\n");
-		printUsage();
-		return -1;
-	}
 	return OK;
 }
 
 void printUsage()
 {
-	fprintf(stderr,"Usage:\tmain role[T/R] <port> <path>\n");
-	fprintf(stderr,"ex:\tmain t 2 /docs\n");
+	fprintf(stderr,"Usage:\tmain -role[t/r] -p <port> -f <path>\noptional: --send-time-out=[int] --read-time-out=[int] --send-tries=[int] -d(Debug)\n");
+	fprintf(stderr,"ex:\tmain -t -p 2 -f pinguim.gif\n");
 }

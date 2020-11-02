@@ -50,7 +50,7 @@ int llopen(int portN, int role_)
 	{
 		case TRANSMITTER:
 			
-			if(send_s_frame_with_response(fd,A_TR,C_SET,C_UA) != OK) return -1;
+			if(send_s_frame_with_response(fd,A_TR,C_SET,C_UA, A_TR) != OK) return -1;
 			break;
 
 		case RECIEVER:
@@ -89,14 +89,16 @@ int llclose(int fd){
 	switch(role)
 	{
 		case TRANSMITTER:
-			if(send_s_frame_with_response(fd,A_TR,C_DISC,C_DISC) != OK) return -1;
-			if(send_s_frame(fd, A_TR, C_UA) < 0) return -1;
+			if(send_s_frame_with_response(fd,A_TR,C_DISC,C_DISC, A_RC) != OK) return -1;
+			if(send_s_frame(fd, A_RC, C_UA) < 0) return -1;
 			break;
 		case RECIEVER:
 			if(read_s_frame(fd,A_TR,C_DISC) < 0) return -1;
-			if(send_s_frame_with_response(fd,A_TR,C_DISC, C_UA) != OK) return -1;
+			if(send_s_frame_with_response(fd,A_RC,C_DISC, C_UA, A_RC) != OK) return -1;
 			break;
 	}
+
+	sleep(1);
 
 	if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
     	perror("tcsetattr");

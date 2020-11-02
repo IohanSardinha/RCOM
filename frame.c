@@ -4,7 +4,7 @@ int tries;
 enum s_frame_state_machine state_machine;
 volatile bool TIME_OUT;
 
-static int send_time_out = 3, read_time_out = 7, send_tries = 3; 
+int send_time_out = 3, read_time_out = 7, send_tries = 3; 
 
 char* header_to_string(unsigned char C)
 {
@@ -50,6 +50,7 @@ unsigned char* s_frame(unsigned char A, unsigned char C)
 int send_s_frame(int fd,unsigned char A, unsigned char C)
 {
 
+
 	unsigned char* frame = s_frame(A,C);
 
 	if(write(fd,frame,S_FRAME_SIZE) < 0)
@@ -62,7 +63,7 @@ int send_s_frame(int fd,unsigned char A, unsigned char C)
 	return OK;
 }
 
-int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char response)
+int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char response, unsigned char responder)
 {
 	int ret;
     unsigned char rcvd[1];
@@ -89,7 +90,7 @@ int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(TIME_OUT) 
 	      	break;
 	      if(ret == 0) continue;
-	      change_s_frame_state(&state_machine, rcvd[0], frame, A, response);
+	      change_s_frame_state(&state_machine, rcvd[0], frame, responder, response);
 	    }while(state_machine!=STOP_S);
 	    
   	}while(state_machine != STOP_S && tries<send_tries);
