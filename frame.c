@@ -397,6 +397,7 @@ unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * par
 	
 	*parity=parityCalculated;
 	*numDados=(n-1);
+	free(fulltrama);
 	
 	return dados;
 
@@ -581,7 +582,7 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
 	packetB= (packetB +1)%2;	
 	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
 	
-		
+	
 	return numBytes;
 	
 	}
