@@ -353,6 +353,7 @@ unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * par
 				}
 				else if (data[i+1]==0x5e){//dado igual a FLAG
 					dados[n]=FLAG;
+					n++;
 					fulltrama[actual]=FLAG;
 					if (i==4){parityCalculated=FLAG;}
 					else if (i>4){parityCalculated=parityCalculated^FLAG;}
@@ -362,6 +363,7 @@ unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * par
 				else if (data[i+1]==0x5d){//dado igual a ESC
 				//printf("somehow it came in here\n");
 					dados[n]=ESC;
+					n++;
 					fulltrama[actual]=ESC;
 					if (i==4){parityCalculated=ESC;}
 					else if (i>4){parityCalculated=parityCalculated^ESC;}
@@ -376,22 +378,25 @@ unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * par
 			else{								//dados with no need for stuffing
 				dados[n]=data[i];
 				fulltrama[actual]=data[i];
-				
-				if (i==4){parityCalculated=data[i];}
-					else if (i>4){parityCalculated=parityCalculated^data[i];}
-					
-					
+				n++;
+				if (i==4)
+				{
+					parityCalculated=data[i];
+				}
+				else if (i>4)
+				{
+					parityCalculated=parityCalculated^data[i];
+				}	
 					//parityCalculated=parityCalculated^data[i];
 				
 			}
-			n++;
 		}
 		actual++;
 	
 	}
 	
 	*parity=parityCalculated;
-	*numDados=n;
+	*numDados=(n-1);
 	
 	return dados;
 
@@ -466,7 +471,7 @@ unsigned char* i_frame( unsigned char* data, unsigned char A, unsigned char C, i
 	frame[actual+tamanho+1]= FLAG;	
 	
 	*frameSize=6+tamanho+oversize;
-	
+
 	return frame;
 
 }
@@ -514,7 +519,6 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(TIME_OUT)
 	      	break;
 	      if(ret == 0) continue;
-	      printf("%x\n",rcvd[0]);
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
@@ -535,13 +539,13 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 }
 
 
-int read_i_frame_with_response(int fd, char * packetbuff){
+int read_i_frame_with_response(int fd, unsigned char * packetbuff){
 
 	int numBytes=0;
 	static int packetB=0;	
 	enum i_frame_state_machine state_machine = START_I;
-    char rcvd[1];
-    char* frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
+    unsigned char rcvd[1];
+    unsigned char* frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
     int res;
     int n=0;
     
@@ -557,6 +561,7 @@ int read_i_frame_with_response(int fd, char * packetbuff){
       res = read(fd,rcvd,1);
       if (TIME_OUT)return -1;
       if (res==0)return -1;
+      //printf("%x\n", rcvd[0]);
       if (state_machine==BCC_NOKI){
       	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)return -2;      	
       	break;}
@@ -569,9 +574,9 @@ int read_i_frame_with_response(int fd, char * packetbuff){
     char naointeressa;
 	
 	unsigned char* dstfd = destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
-	
-	memcpy(packetbuff,&dstfd, numBytes);
-	
+
+	for(int i = 0; i < numBytes; i ++)
+		packetbuff[i] = dstfd[i];
 
 	packetB= (packetB +1)%2;	
 	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
@@ -581,8 +586,6 @@ int read_i_frame_with_response(int fd, char * packetbuff){
 	
 	}
 	else return -1;
-
-
 
 }
 

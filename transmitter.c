@@ -49,7 +49,7 @@ int transmitData(int fd, int fd_file, struct stat stat_file)
     {
         char* packet = data_packet(N, bytes, buff);
 
-        if(llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET) < 0)
+        if((llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET)) < 0)
             return -1;
 
         free(packet);

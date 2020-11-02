@@ -17,11 +17,11 @@
 int llopen(int port, int role);
 
 
-int llread(int fd, char* packetbuff);
+int llread(int fd, unsigned char* packetbuff);
 
 void handleAlarm();
 
-int llwrite(int fd, char* buffer, int lenght);
+int llwrite(int fd, unsigned char* buffer, int lenght);
 
 
 int llclose(int fd);

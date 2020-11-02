@@ -63,7 +63,7 @@ int llopen(int portN, int role_)
 }
 
 
-int llread(int fd, char* packetbuff){
+int llread(int fd, unsigned char* packetbuff){
 
 	int res= read_i_frame_with_response(fd,packetbuff);
 	
@@ -73,7 +73,7 @@ int llread(int fd, char* packetbuff){
 
 
 
-int llwrite(int fd, char* buffer, int lenght)
+int llwrite(int fd, unsigned char* buffer, int lenght)
 {
 	int res = send_i_frame_with_response(fd,A_TR, (Ns == 0)?C_I_0:C_I_1 , buffer, lenght, Ns);
 

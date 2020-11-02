@@ -60,5 +60,5 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 
 int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght, int Ns);
 
-int read_i_frame_with_response(int fd, char* packetbuff);
+int read_i_frame_with_response(int fd, unsigned char* packetbuff);
 
