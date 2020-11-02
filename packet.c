@@ -40,15 +40,18 @@ char* data_packet(int N, int bytes, char* buff)
 
 int parseSendPacket(unsigned char* packet, int numB, char * path){
 
+
 	static int file;
 	unsigned size;
 	if (packet[0]==C_START){
-	int i=1;
-	
+		int i=1;
+
 		if (packet[i]==T_FILE_SIZE){
 			i++;
 			i+=packet[i];
+			i++;
 			if (packet[i]==T_FILE_NAME){
+				i++;
 				strcat(path,&packet[i+1]);
 				
 			if ((file=open(path,O_RDWR | O_CREAT,0777))<0)return -1;
