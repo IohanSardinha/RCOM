@@ -49,7 +49,6 @@ int parseSendPacket(unsigned char* packet, int numB, char * path){
 
 		if (packet[i]==T_FILE_SIZE){
 			i++;
-			printf("%x",packet[i]);
 			i+=packet[i];
 			i++;
 			if (packet[i]==T_FILE_NAME){
