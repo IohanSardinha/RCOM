@@ -25,7 +25,7 @@ int llopen(int portN, int role_)
 	printf("Connecting to %s...\n", port);
 
 	(void) signal(SIGALRM, handle_alarm);
-	alarm();
+	alarm(read_time_out);
 
 	fd = open(port, O_RDWR | O_NOCTTY);
 	if (fd <0) {
