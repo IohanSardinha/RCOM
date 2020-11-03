@@ -563,27 +563,30 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
       res = read(fd,rcvd,1);
       if (TIME_OUT)return -1;
       if (res==0)continue;
-      if (state_machine==BCC_NOKI){
-      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)return -2;      	
-      	break;}
+      if (state_machine==BCC_NOKI)
+      {
+      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)
+      		return -2;      	
+      	return 0;
+      }
       change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
       n++;
       alarm(read_time_out);
     }while(state_machine != STOP_I);
     
     if(state_machine == STOP_I){
-    char naointeressa;
-	
-	unsigned char* dstfd = destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
+	    char naointeressa;
+		
+		unsigned char* dstfd = destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
 
-	for(int i = 0; i < numBytes; i ++)
-		packetbuff[i] = dstfd[i];
+		for(int i = 0; i < numBytes; i ++)
+			packetbuff[i] = dstfd[i];
 
-	packetB= (packetB +1)%2;	
-	if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
-	
-	
-	return numBytes;
+		packetB= (packetB +1)%2;	
+		if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
+		
+		
+		return numBytes;
 	
 	}
 	else return -1;
