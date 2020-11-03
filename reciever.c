@@ -12,7 +12,7 @@ int recieverMain(int fd, char* path)
 		unsigned char buffer[MAX_SIZE_FRAME] = {0};
 		reder=llread(fd,buffer);
 		if(reder<0){
-			fprint(stderr,"Error: Something went wrong while reading\n");
+			fprintf(stderr,"Error: Something went wrong while reading\n");
 			return -1;
 		}
 		packetnumb++;
