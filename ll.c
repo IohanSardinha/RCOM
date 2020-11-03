@@ -2,12 +2,16 @@
 
 int role, Ns = 0;
 struct termios oldtio;
+bool connected = false;
 
 
 void handle_alarm()
 {
-	fprintf(stderr,"Could not open port\n");
-	exit(1);
+	if(!connected)
+	{	
+		fprintf(stderr,"Could not open port\n");
+		exit(1);
+	}
 }
 
 int llopen(int portN, int role_)
@@ -32,6 +36,7 @@ int llopen(int portN, int role_)
 		perror(port); 
 		return -1; 
 	}
+	connected = true;
 
 	if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
 		perror("tcgetattr");
