@@ -6,7 +6,8 @@ struct termios oldtio;
 
 void handle_alarm()
 {
-	printf("WTF\n");
+	fprintf(stderr,"Could not open port\n");
+	exit(1);
 }
 
 int llopen(int portN, int role_)
@@ -24,15 +25,13 @@ int llopen(int portN, int role_)
 	printf("Connecting to %s...\n", port);
 
 	(void) signal(SIGALRM, handle_alarm);
-	alarm(3);
+	alarm();
 
 	fd = open(port, O_RDWR | O_NOCTTY);
 	if (fd <0) {
 		perror(port); 
 		return -1; 
 	}
-
-	printf("MADE THROUGH OPEN\n");
 
 	if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
 		perror("tcgetattr");

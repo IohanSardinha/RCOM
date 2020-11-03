@@ -14,6 +14,8 @@
 
 #define BAUDRATE B38400
 
+extern int read_time_out; 
+
 int llopen(int port, int role);
 
 
