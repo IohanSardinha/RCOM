@@ -16,13 +16,15 @@ int llopen(int portN, int role_)
 
 	sprintf(port, "/dev/ttyS%d", portN);
 
-	printf("Connectiong to %s...\n", port);
+	printf("Connecting to %s...\n", port);
 
-	fd = open(port, O_RDWR | O_NOCTTY );
+	fd = open(port, O_RDWR | O_NOCTTY);
 	if (fd <0) {
 		perror(port); 
 		return -1; 
 	}
+
+	printf("MADE THROUGH OPEN\n");
 
 	if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
 		perror("tcgetattr");
