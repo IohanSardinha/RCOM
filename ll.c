@@ -4,6 +4,11 @@ int role, Ns = 0;
 struct termios oldtio;
 
 
+void handle_alarm()
+{
+	printf("WTF\n");
+}
+
 int llopen(int portN, int role_)
 {
 	
@@ -17,6 +22,8 @@ int llopen(int portN, int role_)
 	sprintf(port, "/dev/ttyS%d", portN);
 
 	printf("Connecting to %s...\n", port);
+
+	(void) signal(SIGALRM, handle_alarm);
 
 	fd = open(port, O_RDWR | O_NOCTTY);
 	if (fd <0) {
