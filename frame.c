@@ -567,7 +567,7 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
       {
       	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)
       		return -2;      	
-      	return 0;
+      	return -3;
       }
       change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
       n++;
