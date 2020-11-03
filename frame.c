@@ -56,6 +56,9 @@ int send_s_frame(int fd,unsigned char A, unsigned char C)
 	if(write(fd,frame,S_FRAME_SIZE) < 0)
 		return -1;
 
+	for(int i = 0; i < 5; i++)
+		printf("%x\n", frame[i]);
+
     free(frame);
 
     if(debug) printf("Sent: %s\n", header_to_string(C));
@@ -90,6 +93,7 @@ int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(TIME_OUT) 
 	      	break;
 	      if(ret == 0) continue;
+	      printf("%x\n", rcvd[0]);
 	      change_s_frame_state(&state_machine, rcvd[0], frame, responder, response);
 	    }while(state_machine!=STOP_S);
 	    
