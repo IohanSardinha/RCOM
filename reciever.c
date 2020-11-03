@@ -13,7 +13,8 @@ int recieverMain(int fd, char* path)
 		reder=llread(fd,buffer);
 		if(reder == -3)
 			continue;
-		if(reder<0){
+		if(reder<=0){
+			printf("%d\n",reder);
 			fprintf(stderr,"Error: Something went wrong while reading\n");
 			return -1;
 		}

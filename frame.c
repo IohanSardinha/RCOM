@@ -594,7 +594,7 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
 		return numBytes;
 	
 	}
-	else return -1;
+	else return -4;
 
 }
 
