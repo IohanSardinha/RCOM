@@ -16,6 +16,8 @@ int llopen(int portN, int role_)
 
 	sprintf(port, "/dev/ttyS%d", portN);
 
+	printf("%s\n", port);	
+
 	fd = open(port, O_RDWR | O_NOCTTY );
 	if (fd <0) {
 		perror(port); 
