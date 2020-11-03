@@ -15,6 +15,9 @@ int recieverMain(int fd, char* path)
 			fprintf(stderr,"Error: Something went wrong while reading\n");
 			return -1;
 		}
+		if(reder == 0)
+			continue;
+		
 		packetnumb++;
 		
 		packetresp=parseSendPacket(buffer,reder,path);
