@@ -524,13 +524,14 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
+    	if(debug) printf("Recieved response: %s\n", frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
+	    
 	    if((frame[2] == C_RR_0 && Ns == 0) || (frame[2] == C_RR_1 && Ns == 1) || (frame[2] == C_REJ_1) || (frame[2] == C_REJ_0))
 		{
 	    	state_machine = START_S;
 			continue;
 		}
 	    
-    	if(debug && !TIME_OUT) printf("Recieved response: %s\n", frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
   	
   	}while(state_machine != STOP_S && tries<send_tries);
 
