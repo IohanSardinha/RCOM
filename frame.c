@@ -3,7 +3,7 @@
 int tries;
 enum s_frame_state_machine state_machine;
 volatile bool TIME_OUT;
-int NNN = 0;
+int line_number = 0;
 
 int send_time_out = 3, read_time_out = 7, send_tries = 3; 
 
@@ -33,6 +33,34 @@ char* header_to_string(unsigned char C)
 	return "NONE";
 }
 
+void printState(enum i_frame_state_machine state)
+{
+	switch(state)
+	{
+		case START_I:
+			printf("START_I\n");
+			break;
+		case FLAG_RCVI:
+			printf("FLAG_RCVI\n");
+			break;
+		case A_RCVI:
+			printf("A_RCVI\n");
+			break;
+		case C_RCVI:
+			printf("C_RCVI\n");
+			break;
+		case BCC_OKI:
+			printf("RECIEVING_DATA\n");
+			break;
+		case BCC_NOKI:
+			printf("BCC_NOT OK\n");
+			break;	
+		case STOP_I:
+			printf("STOP_I\n");
+			break;
+	}
+}
+
 void handleAlarm(){
 	TIME_OUT = true;
 }
@@ -59,8 +87,8 @@ int send_s_frame(int fd,unsigned char A, unsigned char C)
 
     free(frame);
 
-    if(debug) printf("%d:\tSent: %s\n", NNN, header_to_string(C));
-    NNN++;
+    if(debug) printf("%d:\tSent: %s\n", line_number, header_to_string(C));
+    line_number++;
 
 	return OK;
 }
@@ -100,8 +128,8 @@ int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 
   	if(tries >= send_tries) return -1;
 
-    if(debug) printf("%d:\tRecieved response: %s\n",NNN, header_to_string(response));
-	NNN++;
+    if(debug) printf("%d:\tRecieved response: %s\n",line_number, header_to_string(response));
+	line_number++;
 	return OK;
 }
 
@@ -129,8 +157,8 @@ int read_s_frame(int fd, unsigned char A, unsigned char C)
     }while(state_machine != STOP_S);
 
 
-    if(debug) printf("%d:\tRead: %s\n",NNN, header_to_string(C));
-    NNN++;
+    if(debug) printf("%d:\tRead: %s\n",line_number, header_to_string(C));
+    line_number++;
     return OK;
 }
 
@@ -231,10 +259,11 @@ void change_s_frame_state(enum s_frame_state_machine* state, unsigned char rcvd,
 
 
 
-void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C)
+void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C)
 {
 	if(*state == START_I)
 	{
+		printf("\n");
 		if(rcvd == FLAG)
 		{
 			*state = FLAG_RCVI;
@@ -293,12 +322,14 @@ void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 			*state = BCC_OKI;
 			frame[3] = rcvd;
 		}
+		else if(rcvd == FLAG)
+		{
+			*state = FLAG_RCVI;
+		}
 		else
 		{
-			printf("BCC1 WRONG\n");
-			*state = BCC_NOKI;
+			*state = START_I;
 		}
-	
 	}
 	else if(*state == BCC_OKI)
 	{
@@ -507,14 +538,18 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
 
-	printf("%d:\t", NNN);
-	NNN++;
+	printf("%d:\t", line_number);
+	line_number++;
 
 	if(rand() % 100 < 10)
 	{
 		printf("CORRUPTED ::: ");
 		corrupt(frame,frame_size);
 	}
+
+	for (int i = 0; i < frame_size; ++i)
+		printf("%x:", frame[i]);
+	printf("\n");
 
 	if(write(fd, frame, frame_size) < 0)
 		return -1;
@@ -556,12 +591,16 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(TIME_OUT)
 	      	break;
 	      if(ret == 0) continue;
-	      if(ret < 0) return -1;
+	      if(ret < 0)
+	      {
+	      	printf("WRONG READING\n"); 
+	      	return -1;
+	      }
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
-    	if(debug) printf("%d:\tRecieved response: %s\n",NNN, frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
-	    NNN++;
+    	if(debug) printf("%d:\tRecieved response: %s\n",line_number, frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
+	    line_number++;
 	    if((frame[2] == C_RR_0 && Ns == 0) || (frame[2] == C_RR_1 && Ns == 1) || (frame[2] == C_REJ_1) || (frame[2] == C_REJ_0))
 		{
 	    	state_machine = START_S;
@@ -571,8 +610,11 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
   	
   	}while(state_machine != STOP_S && tries<send_tries);
 
-  	if(tries >= send_tries) return -1;
-
+  	if(tries >= send_tries)
+  	{
+		printf("GAVE UP\n");
+  	 	return -1;
+	}
 	
 	return size;
 }
@@ -588,7 +630,6 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
     int res;
     int n=0;
     
-    
     //time out para o read
     TIME_OUT = false;
     
@@ -603,13 +644,21 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
       if (TIME_OUT)return -1;
       if (res==0)continue;
       
-      change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
-      
+      alarm(read_time_out);
+
+      change_i_frame_state(&state_machine, rcvd[0], frame, n, packetB);
+
+      printf("Size: %d\n", n);
+      for(int i = 0; i < n; i++)
+      	printf("%x", frame[i]);
+      printf("\n");
+
       if (state_machine==BCC_NOKI)
       {
       	
-      	if(debug) printf("%d:\tRecieved CORRUPTED frame, Ns = %d\n",NNN, packetB);
-      	NNN++;
+      	printf("\n");
+      	if(debug) printf("%d:\tRecieved CORRUPTED frame, Ns = %d\n",line_number, packetB);
+      	line_number++;
       	
       	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)
       	{
@@ -620,10 +669,10 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
       }
 
       n++;
-      alarm(read_time_out);
     
     }while(state_machine != STOP_I);
-    
+    printf("\n");
+
     if(state_machine == STOP_I){
 	    char naointeressa;
 		
@@ -632,8 +681,8 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
 		for(int i = 0; i < numBytes; i ++)
 			packetbuff[i] = dstfd[i];
 
-		if(debug) printf("%d:\tRecieved frame, Ns= %d\n",NNN, packetB);
-		NNN++;
+		if(debug) printf("%d:\tRecieved frame, Ns= %d\n",line_number, packetB);
+		line_number++;
 
 		packetB= (packetB +1)%2;	
 		

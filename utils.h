@@ -15,7 +15,7 @@
 
 
 #define MAX_SIZE_PACKET 450 
-#define MAX_SIZE_FRAME ((MAX_SIZE_PACKET *10))
+#define MAX_SIZE_FRAME ((MAX_SIZE_PACKET *2))
 
 
 int is_number(const char* str);
