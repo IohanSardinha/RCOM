@@ -45,20 +45,29 @@ int transmitData(int fd, int fd_file, struct stat stat_file)
     int bytes;
     char buff[MAX_SIZE_PACKET];
     float progress=0;
+    bool stopped = false;
 
     while((bytes = read(fd_file, buff, MAX_SIZE_PACKET - 4)) > 0)
     {
         char* packet = data_packet(N, bytes, buff);
         progress+=bytes;
-        system("clear");
-        printf("New termios structure set\nConnection established!\n");
-        print_progress(progress,stat_file.st_size);
+
+
+        /*if(!stopped && (progress/stat_file.st_size) > 0.5)
+        {
+            printf("Stopping...\n");
+            sleep(6);
+            stopped = true;
+            printf("Resuming...\n");
+        }*/
+        //system("clear");
+        //printf("New termios structure set\nConnection established!\n");
+        //print_progress(progress,stat_file.st_size);
        
         if((llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET)) < 0)
             return -1;
-        //printf("%f",progress);
+        
         free(packet);
-
         N++;
     }
     return OK;   
@@ -77,7 +86,7 @@ void print_progress(float progress, int max){
 	progress=progress/max*100;
 	for (; i< 100; ++i){
 	
-		buffer[prefix_length+i]=i<progress?'#':' ';		
+		buffer[prefix_length+i]=i<progress?'#':'.';		
 	}	
 	
 	strcpy(&buffer[prefix_length +i],suffix);

@@ -13,8 +13,10 @@ int main(int argc, char const *argv[])
 		fprintf(stderr, "Error: Could not establish connection!\n");
 		return -1;
 	}
-	printf("Connection established!\n");
+	
+	if(!debug) printf("Connection established!\n");
 
+	srand(time(NULL));
 	switch(role)
 	{
 		case TRANSMITTER:
@@ -34,7 +36,7 @@ int main(int argc, char const *argv[])
 		return -1;
 	}
 
-	printf("Successfully disconnected!\n");
+	if(!debug) printf("Successfully disconnected!\n");
 
 	return 0;
 }

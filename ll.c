@@ -26,7 +26,7 @@ int llopen(int portN, int role_)
 
 	sprintf(port, "/dev/ttyS%d", portN);
 
-	printf("Connecting to %s...\n", port);
+	if(!debug) printf("Connecting to %s...\n", port);
 
 	(void) signal(SIGALRM, handle_alarm);
 	alarm(read_time_out);
@@ -44,7 +44,7 @@ int llopen(int portN, int role_)
 	}
 
 	bzero(&newtio, sizeof(newtio));
-	newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
+	newtio.c_cflag = BAUDRATE0 | CS8 | CLOCAL | CREAD;
 	newtio.c_iflag = IGNPAR;
 	newtio.c_oflag = 0;
 
@@ -60,7 +60,7 @@ int llopen(int portN, int role_)
 		return -1;
 	}
 
-	printf("New termios structure set\n");
+	if(!debug) printf("New termios structure set\n");
 
 	switch(role_)
 	{
@@ -86,17 +86,15 @@ int llread(int fd, unsigned char* packetbuff){
 	return res;
 }
 
-
-
-
 int llwrite(int fd, unsigned char* buffer, int lenght)
 {
 	int res = send_i_frame_with_response(fd,A_TR, (Ns == 0)?C_I_0:C_I_1 , buffer, lenght, Ns);
 
 	if(res < 0)
-		return -1;
+		return res;
 	
 	Ns = (Ns +1) % 2;
+
 	return res;
 }
 

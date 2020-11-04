@@ -1,0 +1,1 @@
+gcc -g -o main main.c utils.c ll.c transmitter.c reciever.c frame.c packet.c
