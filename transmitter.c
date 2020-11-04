@@ -53,11 +53,10 @@ int transmitData(int fd, int fd_file, struct stat stat_file)
         system("clear");
         printf("New termios structure set\nConnection established!\n");
         print_progress(progress,stat_file.st_size);
-        //sleep(1);
-
+       
         if((llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET)) < 0)
             return -1;
-
+        //printf("%f",progress);
         free(packet);
 
         N++;

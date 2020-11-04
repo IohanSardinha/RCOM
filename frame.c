@@ -56,9 +56,6 @@ int send_s_frame(int fd,unsigned char A, unsigned char C)
 	if(write(fd,frame,S_FRAME_SIZE) < 0)
 		return -1;
 
-	//for(int i = 0; i < 5; i++)
-	//	printf("%x\n", frame[i]);
-
     free(frame);
 
     if(debug) printf("Sent: %s\n", header_to_string(C));
@@ -93,9 +90,9 @@ int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(TIME_OUT) 
 	      	break;
 	      if(ret == 0) continue;
-	      //printf("%x\n", rcvd[0]);
 	      change_s_frame_state(&state_machine, rcvd[0], frame, responder, response);
 	    }while(state_machine!=STOP_S);
+	    
 	    
   	}while(state_machine != STOP_S && tries<send_tries);
 
@@ -435,7 +432,7 @@ unsigned char* i_frame( unsigned char* data, unsigned char A, unsigned char C, i
 	}
 	
 	if (parity== FLAG || parity== ESC)oversize++;
-	int size=sizeof(unsigned char)*(6+tamanho+oversize);
+	int size=sizeof(unsigned char)*(6+tamanho+oversize);  
 	
 	unsigned char* frame= malloc (size);
 	frame[0] = FLAG;
@@ -522,11 +519,13 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	    
 	    do{
 	      ret = read(fd,rcvd,1);
+	      //printf("%x\n",rcvd[0]);
 	      if(TIME_OUT)
 	      	break;
 	      if(ret == 0) continue;
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
+	    
 
     	if(debug) printf("Recieved response: %s\n", frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
 	    
@@ -555,6 +554,7 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
     unsigned char* frame= malloc (sizeof(char)*(MAX_SIZE_FRAME));
     int res;
     int n=0;
+    tries=0;
     
     
     //time out para o read
@@ -568,13 +568,15 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
       res = read(fd,rcvd,1);
       if (TIME_OUT)return -1;
       if (res==0)continue;
+      change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
       if (state_machine==BCC_NOKI)
       {
-      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)
-      		return -2;      	
+      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK){
+      		return -2; 
+      	}
+      		     	
       	return -3;
       }
-      change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
       n++;
       alarm(read_time_out);
     }while(state_machine != STOP_I);
@@ -590,7 +592,7 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
 		packetB= (packetB +1)%2;	
 		if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK)return -2;
 		
-		
+		free(frame);
 		return numBytes;
 	
 	}

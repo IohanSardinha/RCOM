@@ -9,8 +9,21 @@ int recieverMain(int fd, char* path)
 	int packetresp;
 	
 	while(1){
+		
 		unsigned char buffer[MAX_SIZE_FRAME] = {0};
+		
+		/*
+		//teste do stop
+		if (packetnumb==5){
+		printf("timebeggin\n");
+		sleep(5);
+		printf("timeover\n");
+		}
+		
+		*/
+		packetnumb++;
 		reder=llread(fd,buffer);
+
 		if(reder == -3)
 			continue;
 		if(reder<=0){
@@ -18,8 +31,6 @@ int recieverMain(int fd, char* path)
 			fprintf(stderr,"Error: Something went wrong while reading\n");
 			return -1;
 		}
-
-		packetnumb++;
 		
 		packetresp=parseSendPacket(buffer,reder,path);
 		

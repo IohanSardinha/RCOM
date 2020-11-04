@@ -17,7 +17,7 @@
 #define C_RR_0   0x05
 #define C_RR_1   0x06
 #define C_REJ_0  0x01
-#define C_REJ_1  0x81
+#define C_REJ_1  0x81 
 #define C_RET_I	 -1
 
 #define A_TR 	 0x03
