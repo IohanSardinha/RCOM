@@ -18,6 +18,7 @@ int recieverMain(int fd, char* path)
 
 		if(reder == -3)
 			continue;
+		
 		if(reder<=0){
 			printf("OcO%d\n",reder);
 			fprintf(stderr,"Error: Something went wrong while reading\n");

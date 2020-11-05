@@ -78,8 +78,6 @@ unsigned char* s_frame(unsigned char A, unsigned char C)
 
 int send_s_frame(int fd,unsigned char A, unsigned char C)
 {
-
-
 	unsigned char* frame = s_frame(A,C);
 
 	if(write(fd,frame,S_FRAME_SIZE) < 0)
@@ -87,8 +85,7 @@ int send_s_frame(int fd,unsigned char A, unsigned char C)
 
     free(frame);
 
-    if(debug) printf("%d:\tSent: %s\n", line_number, header_to_string(C));
-    line_number++;
+    if(debug){ printf("%d:\tSent: %s\n", line_number, header_to_string(C)); line_number++;}
 
 	return OK;
 }
@@ -128,8 +125,8 @@ int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 
   	if(tries >= send_tries) return -1;
 
-    if(debug) printf("%d:\tRecieved response: %s\n",line_number, header_to_string(response));
-	line_number++;
+    if(debug) {printf("%d:\tRecieved response: %s\n",line_number, header_to_string(response));line_number++;}
+
 	return OK;
 }
 
@@ -157,8 +154,8 @@ int read_s_frame(int fd, unsigned char A, unsigned char C)
     }while(state_machine != STOP_S);
 
 
-    if(debug) printf("%d:\tRead: %s\n",line_number, header_to_string(C));
-    line_number++;
+    if(debug){ printf("%d:\tRead: %s\n",line_number, header_to_string(C));line_number++;}
+
     return OK;
 }
 
@@ -258,17 +255,16 @@ void change_s_frame_state(enum s_frame_state_machine* state, unsigned char rcvd,
 }
 
 
-
-void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C)
+void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int* n, int Ns)
 {
 	if(*state == START_I)
 	{
-		printf("\n");
+		*n = 0;
 		if(rcvd == FLAG)
 		{
 			*state = FLAG_RCVI;
-			frame[0] = FLAG;
-			
+			frame[0] = FLAG;	
+			*n = 1;	
 		}
 		//else keep state
 	}
@@ -278,6 +274,7 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 		{
 			*state = A_RCVI;
 			frame[1] = A_TR;
+			*n = 2;
 		}
 		else if(rcvd != FLAG)
 			*state = START_I;
@@ -286,32 +283,34 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 	}
 	else if(*state == A_RCVI)
 	{
-		if (C==0){
+		if (Ns==0){
 			if(rcvd == C0)
 			{
 				*state = C_RCVI;
 				frame[2] = C0;
+				*n = 3;
 			}
 			
-			else if (rcvd == FLAG){
-			*state= FLAG_RCVI;
-			}
+			else if (rcvd == FLAG)
+				*state= FLAG_RCVI;
 			
-			else{*state = START_I;}
+			else
+				*state = START_I;
 			
 		}
-		else if(C == 1)
+		else if(Ns == 1)
 		{
 			if(rcvd == C1)
 			{
 				*state = C_RCVI;
 				frame[2] = C1;
+				*n = 3;
 			}
-			else if (rcvd == FLAG){
-			*state= FLAG_RCVI;
-			}
+			else if (rcvd == FLAG)
+				*state= FLAG_RCVI;
 			
-			else{*state = START_I;}
+			else
+				*state = START_I;
 		}
 		
 	}
@@ -321,6 +320,7 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 		{
 			*state = BCC_OKI;
 			frame[3] = rcvd;
+			*n = 4;
 		}
 		else if(rcvd == FLAG)
 		{
@@ -335,36 +335,19 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 	{
 		
 		if(rcvd == FLAG)
-		{
-			
-			frame[n] = FLAG;
-			unsigned char par;
-			int naointeressa;
-			unsigned char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
-			
-			if (frame[n-1]== par)
-				*state=STOP_I;
-			
-			else if (frame[n-1]== 0x5e||frame[n-1]== 0x5d){
-				
-				if (frame[n-2]==ESC)
-					*state=STOP_I;
-			}
-			else
-			{
-				printf("BCC2 WRONG\n");
-				*state=BCC_NOKI;
-			}
-		}
+			*state = STOP_I;
 		else
 		{
-			if(n > MAX_SIZE_FRAME)
+			if(*n > MAX_SIZE_FRAME)
 			{
 				printf("MAX SIZE REACHED\n");
-				*state = BCC_NOKI;
+				*state = START_I;
 			}
 			else
-			 	frame[n]=rcvd;
+			{
+			 	frame[*n]=rcvd;
+			 	(*n)++;
+			}
 		}
 		//else esta a ler os dados
 	}
@@ -372,31 +355,40 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 
 
 
-unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * parity,int* numDados){
+unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* parity,int* numDados){
 
-	unsigned char* fulltrama= malloc(sizeof(unsigned char)*tamanho);
-	unsigned char* dados=malloc(sizeof(unsigned char)*tamanho);
-	int n=0;
+	unsigned char* fulltrama = malloc(sizeof(unsigned char)*tamanho);
+	unsigned char* dados = malloc(sizeof(unsigned char)*tamanho);
+	int n = 0;
 	unsigned char parityGiven;
 	unsigned char parityCalculated;
 	int actual=0;
 
 
 	for (int i=0; i< tamanho; i++){
-		if (i<4){fulltrama[actual]=data[i];}
+		if (i < 4)
+			fulltrama[actual]=data[i];
+
 		else{
-			if (data[i]==ESC){ //tudo com esc
-				if (data[i+2]==FLAG){  //se for o bcc2
+			if (data[i]==ESC) //tudo com esc
+			{
+				if (data[i+2]==FLAG)//se for o bcc2
+				{
 				
-					if (data[i+1]==0x5e){ //se bcc for FLAG
+					if (data[i+1]==0x5e) //se bcc for FLAG
+					{
 						parityGiven=FLAG;
 					}
-					else{parityGiven=ESC;}//se bcc for ESC
+					else //se bcc for ESC
+					{
+						parityGiven=ESC;
+					}
 					
 					fulltrama[actual]=parityGiven;
 		
 				}
-				else if (data[i+1]==0x5e){//dado igual a FLAG
+				else if (data[i+1]==0x5e) //dado igual a FLAG
+				{
 					dados[n]=FLAG;
 					n++;
 					fulltrama[actual]=FLAG;
@@ -428,20 +420,20 @@ unsigned char* destuffing (unsigned char * data, int tamanho,unsigned char * par
 				{
 					parityCalculated=data[i];
 				}
-				else if (i>4)
+				else if (i>4 && i<tamanho-1)
 				{
-					parityCalculated=parityCalculated^data[i];
+					parityCalculated = parityCalculated^data[i];
 				}	
 					//parityCalculated=parityCalculated^data[i];
 				
 			}
 		}
 		actual++;
-	
 	}
 	
-	*parity=parityCalculated;
+	*parity = parityCalculated;
 	*numDados=(n-1);
+
 	free(fulltrama);
 	
 	return dados;
@@ -538,10 +530,7 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
 
-	printf("%d:\t", line_number);
-	line_number++;
-
-	if(rand() % 100 < 10)
+	/*if(rand() % 100 < 10)
 	{
 		printf("CORRUPTED ::: ");
 		corrupt(frame,frame_size);
@@ -549,14 +538,15 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 
 	for (int i = 0; i < frame_size; ++i)
 		printf("%x:", frame[i]);
-	printf("\n");
-
+	printf("\n");*/
+	
+	
 	if(write(fd, frame, frame_size) < 0)
 		return -1;
 
 	free(frame);
 
-	if(debug) printf("Sent: %s\n",header_to_string(C));
+	if(debug){ printf("%d:\tSent: %s\n",line_number, header_to_string(C)); line_number++;}
 
 	return frame_size;
 }
@@ -599,8 +589,8 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
-    	if(debug) printf("%d:\tRecieved response: %s\n",line_number, frame[2] == -1 ? "NONE" : header_to_string(frame[2]));
-	    line_number++;
+    	if(debug){ printf("%d:\tRecieved response: %s\n",line_number, frame[2] == -1 ? "NONE" : header_to_string(frame[2])); line_number++;}
+	    
 	    if((frame[2] == C_RR_0 && Ns == 0) || (frame[2] == C_RR_1 && Ns == 1) || (frame[2] == C_REJ_1) || (frame[2] == C_REJ_0))
 		{
 	    	state_machine = START_S;
@@ -619,18 +609,44 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	return size;
 }
 
+/*
+frame[n] = FLAG;
+			unsigned char par;
+			int naointeressa;
+			unsigned char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
+			
+			if (frame[n-1]== par)
+				*state=STOP_I;
+			
+			else if (frame[n-1]== 0x5e||frame[n-1]== 0x5d){
+				
+				if (frame[n-2]==ESC)
+					*state=STOP_I;
+			}
+			else
+			{
+				printf("BCC2 WRONG\n");
+				*state=BCC_NOKI;
+			}
+*/
 
-int read_i_frame_with_response(int fd, unsigned char * packetbuff){
 
-	int numBytes=0;
-	static int packetB=0;	
+int read_i_frame_with_response(int fd, unsigned char * buffer){
+
+	static int Ns = 0;
+
+	int frame_size = 0, res;
+
 	enum i_frame_state_machine state_machine = START_I;
+
     unsigned char rcvd[1];
     unsigned char frame[MAX_SIZE_FRAME] = {0};
-    int res;
-    int n=0;
     
-    //time out para o read
+    unsigned char BCC2;
+	unsigned char* frame_data_fields;
+    int data_size;
+
+
     TIME_OUT = false;
     
     (void) signal(SIGALRM, handleAlarm);
@@ -641,58 +657,38 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
     {
       res = read(fd,rcvd,1);
       
-      if (TIME_OUT)return -1;
-      if (res==0)continue;
+      if (TIME_OUT)	return -1;
+      if (res==0)	continue;
+      
+      change_i_frame_state(&state_machine, rcvd[0], frame, &frame_size, Ns);
       
       alarm(read_time_out);
-
-      change_i_frame_state(&state_machine, rcvd[0], frame, n, packetB);
-
-      printf("Size: %d\n", n);
-      for(int i = 0; i < n; i++)
-      	printf("%x", frame[i]);
-      printf("\n");
-
-      if (state_machine==BCC_NOKI)
-      {
-      	
-      	printf("\n");
-      	if(debug) printf("%d:\tRecieved CORRUPTED frame, Ns = %d\n",line_number, packetB);
-      	line_number++;
-      	
-      	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK)
-      	{
-      		return -2; 
-      	}
-      		     	
-      	return -3;
-      }
-
-      n++;
     
     }while(state_machine != STOP_I);
-    printf("\n");
 
-    if(state_machine == STOP_I){
-	    char naointeressa;
+    frame_data_fields = destuffing(frame, frame_size, &BCC2, &data_size);  //just to reuse the function really
+
+    if(frame[frame_size-1] == BCC2)
+    {
+
+    	for(int i = 0; i < data_size; i ++)
+			buffer[i] = frame_data_fields[i];
+
+		if(debug){ printf("%d:\tRecieved frame, Ns= %d\n",line_number, Ns); line_number++;}
+
+		Ns = (Ns + 1) % 2;	
 		
-		unsigned char* dstfd = destuffing(frame,n+1,&naointeressa,&numBytes);  //just to reuse the function really
-
-		for(int i = 0; i < numBytes; i ++)
-			packetbuff[i] = dstfd[i];
-
-		if(debug) printf("%d:\tRecieved frame, Ns= %d\n",line_number, packetB);
-		line_number++;
-
-		packetB= (packetB +1)%2;	
+		if((send_s_frame(fd, A_TR, RRTransform(Ns))) != OK) return -2;
 		
-		if((send_s_frame(fd, A_TR, RRTransform(packetB)))!=OK) return -2;
-		
-		//free(frame);
-		return numBytes;
-	
-	}
-	else return -4;
+		return data_size;
+
+    }
+	else
+	{
+		if((send_s_frame(fd, A_TR, REJTransform(Ns))) != OK) return -4;
+
+		return -3;
+	}	
 
 }
 

@@ -52,7 +52,7 @@ int read_s_frame(int fd, unsigned char A, unsigned char C);
 void change_s_frame_state(enum s_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, unsigned char A, unsigned char C);
 
 
-void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C);
+void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int* n, int C);
 
 unsigned char* i_frame(unsigned char* data, unsigned char A, unsigned char C,int tamanho,int* frameSize);
 
