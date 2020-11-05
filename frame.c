@@ -229,7 +229,7 @@ void change_s_frame_state(enum s_frame_state_machine* state, unsigned char rcvd,
 
 
 
-void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int n, int C)
+void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd, unsigned char* frame, int * n, int C)
 {
 	if(*state == START_I)
 	{
@@ -251,7 +251,7 @@ void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 		else if(rcvd != FLAG)
 			*state = START_I;
 
-		//else keep state
+		else{*n=0;}//else keep state
 	}
 	else if(*state == A_RCVI)
 	{
@@ -302,27 +302,31 @@ void change_I_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 	}
 	else if(*state == BCC_OKI)
 	{
-		
-		if(rcvd == FLAG)
+		if ((*n)>=MAX_SIZE_FRAME){
+		printf("foi aqui\n");
+			*n=0;
+			*state=START_I;
+		}
+		else if(rcvd == FLAG)
 		{
 			
-			frame[n] = FLAG;
+			frame[*n] = FLAG;
 			unsigned char par;
 			int naointeressa;
-			unsigned char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
+			unsigned char * destuffedFrame= destuffing(frame, (*n)+1,&par,&naointeressa);
 			
 			
-			if (frame[n-1]== par){
+			if (frame[(*n)-1]== par){
 			*state=STOP_I;
 			
 			}
-			else if (frame[n-1]== 0x5e||frame[n-1]== 0x5d){
-				if (frame[n-2]==ESC)
+			else if (frame[(*n)-1]== 0x5e||frame[(*n)-1]== 0x5d){
+				if (frame[(*n)-2]==ESC)
 					*state=STOP_I;
 			}
 			else{*state=BCC_NOKI;}
 		}
-		else frame[n]=rcvd;
+		else frame[(*n)]=rcvd;
 		//else esta a ler os dados
 	}
 }
@@ -479,11 +483,26 @@ unsigned char* i_frame( unsigned char* data, unsigned char A, unsigned char C, i
 
 }
 
+void corrupt(unsigned char * frame, int size){
+	int corrupted_count= rand()%size;
+	
+	for(int n=0; n<corrupted_count;n++){
+		int i = rand()%size;
+		frame[i]=frame[i]&0xaa;
+	}	
+	
+
+}
+
 int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght)
 {
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
 
+
+	if (rand()%100<10){
+		corrupt(frame,frame_size);
+	}
 	if(write(fd, frame, frame_size) < 0)
 		return -1;
 
@@ -511,7 +530,7 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	    
 	    TIME_OUT = false;
 
-		if((size = send_i_frame(fd, A, C, data, lenght)) < 0) return -1;
+		if((size = send_i_frame(fd, A, C, data, lenght)) < 0)return -1;
 
 	    alarm(send_time_out);
 
@@ -538,7 +557,7 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
   	
   	}while(state_machine != STOP_S && tries<send_tries);
 
-  	if(tries >= send_tries) return -1;
+  	if(tries > send_tries) {printf("foi no tries\n");return -1;}
 
 	
 	return size;
@@ -566,9 +585,10 @@ int read_i_frame_with_response(int fd, unsigned char * packetbuff){
     do
     {
       res = read(fd,rcvd,1);
+      //printf("%x\n",rcvd[0]);
       if (TIME_OUT)return -1;
       if (res==0)continue;
-      change_I_frame_state(&state_machine, rcvd[0], frame, n, packetB);
+      change_I_frame_state(&state_machine, rcvd[0], frame, &n, packetB);
       if (state_machine==BCC_NOKI)
       {
       	if((send_s_frame(fd, A_TR, REJTransform(packetB)))!=OK){

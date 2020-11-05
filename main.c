@@ -4,6 +4,7 @@ int main(int argc, char const *argv[])
 {
 	int role, port, fd;
 	char path[255];
+	srand(time(NULL));
 	
 	if(validateArgs(argc, argv, &role, &port, path) != OK)
 		return -1;
