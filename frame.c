@@ -550,11 +550,12 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
 
-	/*if(rand() % 100 < 10)
+	if(debug){ printf("%d:\tSent: %s",line_number, header_to_string(C)); line_number++;}
+	if(rand() % 100 < 10)
 	{
-		printf("CORRUPTED ::: ");
+		printf(":::::CORRUPTED:::::\n");
 		corrupt(frame,frame_size);
-	}*/
+	}
 
 /*	for (int i = 0; i < frame_size; ++i)
 		printf("%x:", frame[i]);
@@ -566,7 +567,6 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 
 	free(frame);
 
-	if(debug){ printf("%d:\tSent: %s\n",line_number, header_to_string(C)); line_number++;}
 
 	return frame_size;
 }
