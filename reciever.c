@@ -20,11 +20,11 @@ int recieverMain(int fd, char* path)
 			continue;
 		
 		if(reder<=0){
-			printf("OcO%d\n",reder);
+			printf("%d\n",reder);
 			fprintf(stderr,"Error: Something went wrong while reading\n");
 			char rm[255];
 			sprintf(rm, "rm %s", path);
-			system(rm);
+			//system(rm);
 			return -1;
 		}
 

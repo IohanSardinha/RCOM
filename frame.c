@@ -335,7 +335,10 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 	{
 		
 		if(rcvd == FLAG)
+		{
+			frame[*n]=rcvd;
 			*state = STOP_I;
+		}
 		else
 		{
 			if(*n > MAX_SIZE_FRAME)
@@ -354,8 +357,7 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 }
 
 
-
-unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* parity,int* numDados){
+unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* parity, int* numDados){
 
 	unsigned char* fulltrama = malloc(sizeof(unsigned char)*tamanho);
 	unsigned char* dados = malloc(sizeof(unsigned char)*tamanho);
@@ -392,8 +394,14 @@ unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* par
 					dados[n]=FLAG;
 					n++;
 					fulltrama[actual]=FLAG;
-					if (i==4){parityCalculated=FLAG;}
-					else if (i>4){parityCalculated=parityCalculated^FLAG;}
+					if (i==4)
+					{
+						parityCalculated=FLAG;
+					}
+					else if (i>4)
+					{
+						parityCalculated=parityCalculated^FLAG;
+					}
 				
 				}
 				
@@ -402,16 +410,28 @@ unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* par
 					dados[n]=ESC;
 					n++;
 					fulltrama[actual]=ESC;
-					if (i==4){parityCalculated=ESC;}
-					else if (i>4){parityCalculated=parityCalculated^ESC;}
+					if (i==4)
+					{
+						parityCalculated=ESC;
+					}
+					else if (i>4)
+					{
+						parityCalculated=parityCalculated^ESC;
+					}
 				}
 				i++;
 				
 			}
 			
 			//sem ESC
-			else if (data[i]==FLAG){fulltrama[actual]=data[i];}//se for a flag
-			else if (data[i+1]==FLAG){fulltrama[actual]=data[i];} //se for o bcc2
+			else if (data[i]==FLAG)//se for a flag
+			{
+				fulltrama[actual]=data[i];
+			}
+			else if(data[i+1]==FLAG)//se for o bcc2
+			{
+				fulltrama[actual]=data[i];
+			}
 			else{								//dados with no need for stuffing
 				dados[n]=data[i];
 				fulltrama[actual]=data[i];
@@ -420,7 +440,7 @@ unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* par
 				{
 					parityCalculated=data[i];
 				}
-				else if (i>4 && i<tamanho-1)
+				else if (i>4)
 				{
 					parityCalculated = parityCalculated^data[i];
 				}	
@@ -432,7 +452,7 @@ unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* par
 	}
 	
 	*parity = parityCalculated;
-	*numDados=(n-1);
+	*numDados=n;
 
 	free(fulltrama);
 	
@@ -534,9 +554,9 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 	{
 		printf("CORRUPTED ::: ");
 		corrupt(frame,frame_size);
-	}
+	}*/
 
-	for (int i = 0; i < frame_size; ++i)
+/*	for (int i = 0; i < frame_size; ++i)
 		printf("%x:", frame[i]);
 	printf("\n");*/
 	
@@ -583,7 +603,6 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(ret == 0) continue;
 	      if(ret < 0)
 	      {
-	      	printf("WRONG READING\n"); 
 	      	return -1;
 	      }
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
@@ -642,7 +661,7 @@ int read_i_frame_with_response(int fd, unsigned char * buffer){
     unsigned char rcvd[1];
     unsigned char frame[MAX_SIZE_FRAME] = {0};
     
-    unsigned char BCC2;
+    unsigned char BCC2 = 0;
 	unsigned char* frame_data_fields;
     int data_size;
 
@@ -662,13 +681,19 @@ int read_i_frame_with_response(int fd, unsigned char * buffer){
       
       change_i_frame_state(&state_machine, rcvd[0], frame, &frame_size, Ns);
       
+      //printf("%x  %d  ", rcvd[0], frame_size);
+      //printState(state_machine);
+      
       alarm(read_time_out);
     
     }while(state_machine != STOP_I);
 
-    frame_data_fields = destuffing(frame, frame_size, &BCC2, &data_size);  //just to reuse the function really
+    frame_data_fields = destuffing(frame, frame_size+1, &BCC2, &data_size);  //just to reuse the function really
 
-    if(frame[frame_size-1] == BCC2)
+    if(
+    	(frame[frame_size-1] == BCC2) ||
+    	((frame[frame_size-1]== 0x5e||frame[frame_size-1]== 0x5d) && (frame[frame_size-2]==ESC))
+      )
     {
 
     	for(int i = 0; i < data_size; i ++)

@@ -74,7 +74,6 @@ int parseSendPacket(unsigned char* packet, int numB, char * path){
 	else if (packet[0]==C_DATA){
 		size= (unsigned char)packet[3]+256*((unsigned char)packet[2]);
 		if (write(file,&packet[4],size)<0)return -1;
-		printf("Wrote %d\n", numB);
 		return C_DATA;
 	
 	}
