@@ -25,10 +25,8 @@ int transmitterMain(int fd, char* path)
     }
 
     if(transmitData(fd, fd_file, stat_file) < 0)
-    {
-        fprintf(stderr, "Error: Something went wrong while transmitting data!\n");
         return -1;
-    }    
+        
 
     if(send_controll_packet(fd,C_END, stat_file.st_size, file_name) < 0)
     {
@@ -52,50 +50,38 @@ int transmitData(int fd, int fd_file, struct stat stat_file)
         char* packet = data_packet(N, bytes, buff);
         progress+=bytes;
 
-
+        //Uncomment to simulate interuptions in the serial cable
         /*if(!stopped && (progress/stat_file.st_size) > 0.5)
         {
             printf("Stopping...\n");
-            sleep(6);
+            sleep(5);
             stopped = true;
             printf("Resuming...\n");
+            sleep(1);
         }*/
-        //system("clear");
-        //printf("New termios structure set\nConnection established!\n");
-        //print_progress(progress,stat_file.st_size);
-       
-        if((llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET)) < 0)
+        
+        if(!debug)
+        {
+            system("clear");
+            printf("New termios structure set\nConnection established!\n");
+            print_progress(progress,stat_file.st_size);
+        }
+        int res;
+        if((res = llwrite(fd, packet, (bytes+4 < MAX_SIZE_PACKET)? (bytes+4) : MAX_SIZE_PACKET)) < 0)
+        {
+            if(res == -1)
+                fprintf(stderr, "Error: Could not write to file descriptor!\n");
+            else if(res == -2)
+                fprintf(stderr, "Error: Time-out, response took to long to arive!\n");
+            else if(res == -3)
+                fprintf(stderr, "Error: Could not read from file descriptor!\n");
+            else
+                fprintf(stderr, "Error: Something went wrong while transmitting data!\n");
             return -1;
+        }
         
         free(packet);
         N++;
     }
     return OK;   
 }
-
-void print_progress(float progress, int max){
-	const char prefix[]= "Progress: [";
-	const char suffix[]= "]";
-	const size_t prefix_length= sizeof(prefix)-1;
-	const size_t suffix_length = sizeof(suffix)-1;
-	char * buffer= calloc(max+prefix_length+suffix_length+1,1); //+1 for end
-	int i=0;
-	
-	strcpy(buffer, prefix);
-	
-	progress=progress/max*100;
-	for (; i< 100; ++i){
-	
-		buffer[prefix_length+i]=i<progress?'#':'.';		
-	}	
-	
-	strcpy(&buffer[prefix_length +i],suffix);
-	printf("\b%c[2K\r%s %d%%\n", 27, buffer,(int)progress);
-	
-	fflush(stdout);
-	free(buffer);
-	
-
-}
-
-

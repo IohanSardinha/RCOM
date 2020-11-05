@@ -39,8 +39,7 @@ char* data_packet(int N, int bytes, char* buff)
 
 
 int parseSendPacket(unsigned char* packet, int numB, char * path){
-
-
+	
 	static int file;
 	unsigned size;
 	if (packet[0]==C_START){
@@ -75,7 +74,6 @@ int parseSendPacket(unsigned char* packet, int numB, char * path){
 		size= (unsigned char)packet[3]+256*((unsigned char)packet[2]);
 		if (write(file,&packet[4],size)<0)return -1;
 		return C_DATA;
-	
 	}
 	else{return -1;}
 

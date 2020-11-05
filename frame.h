@@ -39,8 +39,6 @@ unsigned char REJTransform(int C);
 
 unsigned char RRTransform (int C);
 
-unsigned char* destuffing (unsigned char* data, int tamanho,unsigned char* parity, int * numDados);
-
 unsigned char* s_frame(unsigned char A, unsigned char C);
 
 int send_s_frame(int fd, unsigned char A, unsigned char C);
@@ -62,3 +60,6 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 
 int read_i_frame_with_response(int fd, unsigned char* packetbuff);
 
+bool compute_parity(unsigned char* frame, int size);
+
+unsigned char* destuffing(unsigned char *frame, int size, int* destuffed_size);

@@ -5,7 +5,7 @@ enum s_frame_state_machine state_machine;
 volatile bool TIME_OUT;
 int line_number = 0;
 
-int send_time_out = 3, read_time_out = 7, send_tries = 3; 
+int send_time_out = 1, read_time_out = 7, send_tries = 9; 
 
 char* header_to_string(unsigned char C)
 {
@@ -343,7 +343,6 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 		{
 			if(*n > MAX_SIZE_FRAME)
 			{
-				printf("MAX SIZE REACHED\n");
 				*state = START_I;
 			}
 			else
@@ -356,123 +355,14 @@ void change_i_frame_state(enum i_frame_state_machine* state, unsigned char rcvd,
 	}
 }
 
-
-unsigned char* destuffing (unsigned char * data, int tamanho, unsigned char* parity, int* numDados){
-
-	unsigned char* fulltrama = malloc(sizeof(unsigned char)*tamanho);
-	unsigned char* dados = malloc(sizeof(unsigned char)*tamanho);
-	int n = 0;
-	unsigned char parityGiven;
-	unsigned char parityCalculated;
-	int actual=0;
-
-
-	for (int i=0; i< tamanho; i++){
-		if (i < 4)
-			fulltrama[actual]=data[i];
-
-		else{
-			if (data[i]==ESC) //tudo com esc
-			{
-				if (data[i+2]==FLAG)//se for o bcc2
-				{
-				
-					if (data[i+1]==0x5e) //se bcc for FLAG
-					{
-						parityGiven=FLAG;
-					}
-					else //se bcc for ESC
-					{
-						parityGiven=ESC;
-					}
-					
-					fulltrama[actual]=parityGiven;
-		
-				}
-				else if (data[i+1]==0x5e) //dado igual a FLAG
-				{
-					dados[n]=FLAG;
-					n++;
-					fulltrama[actual]=FLAG;
-					if (i==4)
-					{
-						parityCalculated=FLAG;
-					}
-					else if (i>4)
-					{
-						parityCalculated=parityCalculated^FLAG;
-					}
-				
-				}
-				
-				else if (data[i+1]==0x5d){//dado igual a ESC
-				//printf("somehow it came in here\n");
-					dados[n]=ESC;
-					n++;
-					fulltrama[actual]=ESC;
-					if (i==4)
-					{
-						parityCalculated=ESC;
-					}
-					else if (i>4)
-					{
-						parityCalculated=parityCalculated^ESC;
-					}
-				}
-				i++;
-				
-			}
-			
-			//sem ESC
-			else if (data[i]==FLAG)//se for a flag
-			{
-				fulltrama[actual]=data[i];
-			}
-			else if(data[i+1]==FLAG)//se for o bcc2
-			{
-				fulltrama[actual]=data[i];
-			}
-			else{								//dados with no need for stuffing
-				dados[n]=data[i];
-				fulltrama[actual]=data[i];
-				n++;
-				if (i==4)
-				{
-					parityCalculated=data[i];
-				}
-				else if (i>4)
-				{
-					parityCalculated = parityCalculated^data[i];
-				}	
-					//parityCalculated=parityCalculated^data[i];
-				
-			}
-		}
-		actual++;
-	}
-	
-	*parity = parityCalculated;
-	*numDados=n;
-
-	free(fulltrama);
-	
-	return dados;
-
-}
-
 unsigned char REJTransform(int C){
 	if (C==0)return C_REJ_0 ;
 	else {return C_REJ_1;}
-
 }
-
-
 
 unsigned char RRTransform (int C){
 	if (C==0)return C_RR_0;
 	else {return C_RR_1;}
-
-
 }
 
 unsigned char* i_frame( unsigned char* data, unsigned char A, unsigned char C, int tamanho, int* frameSize){
@@ -534,43 +424,22 @@ unsigned char* i_frame( unsigned char* data, unsigned char A, unsigned char C, i
 
 }
 
-void corrupt(unsigned char* frame, int size)
-{
-	int corrupted_count = rand()%size;
-
-	for (int n = 0; n < corrupted_count; n++)
-	{
-		int i = rand()%size;
-		frame[i] = frame[i] & 0xaa; 
-	}
-}
-
 int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght)
 {
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
 
-	if(debug){ printf("%d:\tSent: %s",line_number, header_to_string(C)); line_number++;}
-	if(rand() % 100 < 10)
-	{
-		printf(":::::CORRUPTED:::::\n");
-		corrupt(frame,frame_size);
-	}
-
-/*	for (int i = 0; i < frame_size; ++i)
-		printf("%x:", frame[i]);
-	printf("\n");*/
-	
-	
+	if(debug){ printf("%d:\tSent: %s\n",line_number, header_to_string(C)); line_number++;}
+		
 	if(write(fd, frame, frame_size) < 0)
 		return -1;
 
 	free(frame);
 
-
 	return frame_size;
 }
 
+///tratar casos
 int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigned char* data, int lenght, int Ns)
 {
 	int ret, size;
@@ -601,10 +470,7 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      if(TIME_OUT)
 	      	break;
 	      if(ret == 0) continue;
-	      if(ret < 0)
-	      {
-	      	return -1;
-	      }
+	      if(ret < 0) return -3;
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
@@ -621,34 +487,45 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 
   	if(tries >= send_tries)
   	{
-		printf("GAVE UP\n");
-  	 	return -1;
+  	 	return -2;
 	}
 	
 	return size;
 }
 
-/*
-frame[n] = FLAG;
-			unsigned char par;
-			int naointeressa;
-			unsigned char * destuffedFrame= destuffing(frame, n+1,&par,&naointeressa);
-			
-			if (frame[n-1]== par)
-				*state=STOP_I;
-			
-			else if (frame[n-1]== 0x5e||frame[n-1]== 0x5d){
-				
-				if (frame[n-2]==ESC)
-					*state=STOP_I;
-			}
-			else
-			{
-				printf("BCC2 WRONG\n");
-				*state=BCC_NOKI;
-			}
-*/
 
+unsigned char* destuffing(unsigned char *frame, int size, int* destuffed_size){
+	
+	*destuffed_size = 0;
+	unsigned char* destuffed_frame = malloc(sizeof(unsigned char)*MAX_SIZE_PACKET);
+
+	for(int i = 0; i < size; i++)
+	{
+		if(frame[i] == ESC && i != (size-1))
+		{
+			destuffed_frame[*destuffed_size] = frame[i+1] ^ 0x20;
+		i++;
+		}
+		else
+		{
+			destuffed_frame[*destuffed_size] = frame[i];
+		}
+		(*destuffed_size)++;
+	}
+
+	return destuffed_frame;
+}
+
+bool compute_parity(unsigned char* frame, int size)
+{
+	int parity = 0;
+	for(int i = 4; i < size - 2; i++)
+	{
+		parity = parity ^ frame[i];	
+	}
+
+	return parity == frame[size-2];
+}
 
 int read_i_frame_with_response(int fd, unsigned char * buffer){
 
@@ -661,10 +538,8 @@ int read_i_frame_with_response(int fd, unsigned char * buffer){
     unsigned char rcvd[1];
     unsigned char frame[MAX_SIZE_FRAME] = {0};
     
-    unsigned char BCC2 = 0;
-	unsigned char* frame_data_fields;
-    int data_size;
-
+	unsigned char* destuffed_frame;
+    int destuffed_size;
 
     TIME_OUT = false;
     
@@ -681,39 +556,37 @@ int read_i_frame_with_response(int fd, unsigned char * buffer){
       
       change_i_frame_state(&state_machine, rcvd[0], frame, &frame_size, Ns);
       
-      //printf("%x  %d  ", rcvd[0], frame_size);
-      //printState(state_machine);
-      
       alarm(read_time_out);
     
     }while(state_machine != STOP_I);
 
-    frame_data_fields = destuffing(frame, frame_size+1, &BCC2, &data_size);  //just to reuse the function really
+    //Uncomment to simulate corruptions on the data
+/*    if(rand() % 100 < CORUPTION_FREQUENCY)
+		corrupt(frame,frame_size);*/
 
-    if(
-    	(frame[frame_size-1] == BCC2) ||
-    	((frame[frame_size-1]== 0x5e||frame[frame_size-1]== 0x5d) && (frame[frame_size-2]==ESC))
-      )
+    destuffed_frame = destuffing(frame, frame_size+1, &destuffed_size);
+
+    if(compute_parity(destuffed_frame,destuffed_size))
     {
-
-    	for(int i = 0; i < data_size; i ++)
-			buffer[i] = frame_data_fields[i];
-
-		if(debug){ printf("%d:\tRecieved frame, Ns= %d\n",line_number, Ns); line_number++;}
+    	
+    	for(int i = 4; i < destuffed_size-2; i ++)
+			buffer[i-4] = destuffed_frame[i];
+ 	
+    	if(debug){ printf("%d:\tRecieved frame, Ns= %d\n",line_number, Ns); line_number++;}
 
 		Ns = (Ns + 1) % 2;	
 		
 		if((send_s_frame(fd, A_TR, RRTransform(Ns))) != OK) return -2;
 		
-		return data_size;
+    	free(destuffed_frame);
 
+		return destuffed_size-6;
     }
-	else
-	{
-		if((send_s_frame(fd, A_TR, REJTransform(Ns))) != OK) return -4;
 
-		return -3;
-	}	
+	if((send_s_frame(fd, A_TR, REJTransform(Ns))) != OK) return -4;
 
+	free(destuffed_frame);
+
+	return -3;
 }
 

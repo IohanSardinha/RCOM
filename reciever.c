@@ -15,16 +15,16 @@ int recieverMain(int fd, char* path)
 		
 		reder=llread(fd,buffer);
 
-
 		if(reder == -3)
 			continue;
 		
-		if(reder<=0){
-			printf("%d\n",reder);
-			fprintf(stderr,"Error: Something went wrong while reading\n");
-			char rm[255];
-			sprintf(rm, "rm %s", path);
-			//system(rm);
+		if(reder <= 0){
+			if(reder == -1)
+				fprintf(stderr,"Error: Time-out, data took to long to arive!\n");
+			else if(reder == -2 || reder == -4)
+				fprintf(stderr,"Error: Could not write to file descriptor!\n");
+			else
+				fprintf(stderr,"Error: Something went wrong while reading\n");
 			return -1;
 		}
 

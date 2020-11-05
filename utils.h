@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <string.h>
+
+#define CORUPTION_FREQUENCY 0.1
 
 #define TRANSMITTER 0 
 #define RECIEVER 	1
@@ -19,3 +22,5 @@
 
 
 int is_number(const char* str);
+void print_progress(float progress, int max);
+void corrupt(unsigned char* frame, int size);
