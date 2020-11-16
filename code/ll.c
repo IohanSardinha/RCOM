@@ -91,7 +91,7 @@ int llread(int fd, unsigned char* packetbuff){
 	end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    if(debug) printf("tprof: %ld\n", cpu_time_used);
+    if(debug) printf("tprof: %f\n", cpu_time_used);
 		
 	return res;
 }
@@ -113,7 +113,7 @@ int llwrite(int fd, unsigned char* buffer, int lenght)
 	end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    if(debug) printf("tprop: %ld\n", cpu_time_used);
+    if(debug) printf("tprop: %f\n", cpu_time_used);
 
 	return res;
 }
