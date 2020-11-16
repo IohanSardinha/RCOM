@@ -81,19 +81,39 @@ int llopen(int portN, int role_)
 
 int llread(int fd, unsigned char* packetbuff){
 
+	clock_t start, end;
+	double cpu_time_used;
+
+	start = clock();
+
 	int res = read_i_frame_with_response(fd,packetbuff);
-	
+
+	end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+    if(debug) printf("tprof: %d\n", cpu_time_used);
+		
 	return res;
 }
 
 int llwrite(int fd, unsigned char* buffer, int lenght)
 {
+	clock_t start, end;
+	double cpu_time_used;
+
+	start = clock();
+
 	int res = send_i_frame_with_response(fd,A_TR, (Ns == 0)?C_I_0:C_I_1 , buffer, lenght, Ns);
 
 	if(res < 0)
 		return res;
 	
 	Ns = (Ns +1) % 2;
+
+	end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+    if(debug) printf("tprop: %d\n", cpu_time_used);
 
 	return res;
 }

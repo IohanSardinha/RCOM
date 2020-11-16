@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <string.h>
+#include <time.h>
+
 
 #define CORUPTION_FREQUENCY 0.1
 
