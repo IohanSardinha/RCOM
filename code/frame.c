@@ -85,7 +85,7 @@ int send_s_frame(int fd,unsigned char A, unsigned char C)
 
     free(frame);
 
-    //if(debug){ printf("%d:\tSent: %s\n", line_number, header_to_string(C)); line_number++;}
+    if(debug){ printf("%d:\tSent: %s\n", line_number, header_to_string(C)); line_number++;}
 
 	return OK;
 }
@@ -125,7 +125,7 @@ int send_s_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 
   	if(tries >= send_tries) return -1;
 
-    //if(debug) {printf("%d:\tRecieved response: %s\n",line_number, header_to_string(response));line_number++;}
+    if(debug) {printf("%d:\tRecieved response: %s\n",line_number, header_to_string(response));line_number++;}
 
 	return OK;
 }
@@ -154,7 +154,7 @@ int read_s_frame(int fd, unsigned char A, unsigned char C)
     }while(state_machine != STOP_S);
 
 
-    //if(debug){ printf("%d:\tRead: %s\n",line_number, header_to_string(C));line_number++;}
+    if(debug){ printf("%d:\tRead: %s\n",line_number, header_to_string(C));line_number++;}
 
     return OK;
 }
@@ -429,7 +429,7 @@ int send_i_frame(int fd, unsigned char A, unsigned char C, unsigned char* data, 
 	int frame_size, res;
 	unsigned char* frame = i_frame(data, A, C, lenght, &frame_size);
 
-	//if(debug){ printf("%d:\tSent: %s\n",line_number, header_to_string(C)); line_number++;}
+	if(debug){ printf("%d:\tSent: %s\n",line_number, header_to_string(C)); line_number++;}
 		
 	if(write(fd, frame, frame_size) < 0)
 		return -1;
@@ -474,7 +474,7 @@ int send_i_frame_with_response(int fd, unsigned char A, unsigned char C, unsigne
 	      change_s_frame_state(&state_machine, rcvd[0], frame, A, C_RET_I);
 	    }while(state_machine!=STOP_S);
 
-    	//if(debug){ printf("%d:\tRecieved response: %s\n",line_number, frame[2] == -1 ? "NONE" : header_to_string(frame[2])); line_number++;}
+    	if(debug){ printf("%d:\tRecieved response: %s\n",line_number, frame[2] == -1 ? "NONE" : header_to_string(frame[2])); line_number++;}
 	    
 	    if((frame[2] == C_RR_0 && Ns == 0) || (frame[2] == C_RR_1 && Ns == 1) || (frame[2] == C_REJ_1) || (frame[2] == C_REJ_0))
 		{
@@ -572,7 +572,7 @@ int read_i_frame_with_response(int fd, unsigned char * buffer){
     	for(int i = 4; i < destuffed_size-2; i ++)
 			buffer[i-4] = destuffed_frame[i];
  	
-    	//if(debug){ printf("%d:\tRecieved frame, Ns= %d\n",line_number, Ns); line_number++;}
+    	if(debug){ printf("%d:\tRecieved frame, Ns= %d\n",line_number, Ns); line_number++;}
 
 		Ns = (Ns + 1) % 2;	
 		
