@@ -2,6 +2,7 @@
 
 int main(int argc, char * argv[])
 {
+    int ret;
     char** fields = malloc(sizeof(char*)*FIELDS_SIZE);
 
     if (argc != 2) {
@@ -9,15 +10,16 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-    if (paserArgs(argv[1], fields) < 0) {
-        fprintf(stderr, "Could not parse url!\n");
-        return -2;
+
+    if ((ret = paserArgs(argv[1], fields)) < 0) {
+        fprintf(stderr, "Could not parse url! errno: %d\n", ret);
+        return ret;
     }
 
-    if(download(fields) < 0)
+    if((ret = download(fields)) < 0)
     {
-        fprintf(stderr, "Could not download file\n");
-        return -3;
+        fprintf(stderr, "Could not download file! errno: %d\n", ret);
+        return ret;
     }
 
     free(fields);
@@ -26,12 +28,17 @@ int main(int argc, char * argv[])
 
 int download(char* fields[]){
     int socket_fd, port, data_fd, file_fd, size;
-    char response[255];
+    char response[2048] ;
     char ip[16], buffer[1024];
 
     if((socket_fd = ftp_connect(fields[IP_INDEX], 21)) < 0)
     {
-        return -socket_fd;
+        return socket_fd - 100;
+    }
+
+    if((ftp_response(socket_fd, response)) != SOCKET_READY)
+    {
+        return -1;
     }
 
     if(ftp_login(socket_fd, fields[USER_INDEX], fields[PASS_INDEX]) < 0)
@@ -39,7 +46,8 @@ int download(char* fields[]){
         return -2;
     }
 
-    if(ftp_command(socket_fd, "passv", NULL))
+
+    if(ftp_command(socket_fd, "pasv", NULL))
     {
         return -3;
     }
@@ -50,11 +58,13 @@ int download(char* fields[]){
     }
 
     port = parse_pasv_port(response, ip);
+    
 
     if((data_fd = ftp_connect(ip, port)) < 0)
     {
         return -data_fd;
     }
+
 
     if(ftp_command(socket_fd, "retr", fields[PATH_INDEX]) < 0)
     {
@@ -105,6 +115,7 @@ int paserArgs(char* url, char* fields[]){
     fields[HOST_INDEX] = strtok(NULL, "");
     
     if(strchr(fields[USER_INDEX],'@') != NULL){
+
         fields[USER_INDEX] = "anonymous";
         
         fields[PASS_INDEX] = strtok(args,"@");
@@ -116,6 +127,12 @@ int paserArgs(char* url, char* fields[]){
             fields[HOST_INDEX] = temp;
         }
     }
+    else{
+        char * temp = fields[USER_INDEX];
+        fields[USER_INDEX] = "anonymous";
+        fields[PASS_INDEX] = "anonymous";
+        fields[HOST_INDEX] = temp;
+    }
 
     char* file_name;
     (file_name = strrchr(fields[PATH_INDEX], '/')) ? ++file_name : (file_name = fields[PATH_INDEX]);
@@ -124,14 +141,14 @@ int paserArgs(char* url, char* fields[]){
 
     if(fields[USER_INDEX] == NULL || fields[PASS_INDEX] == NULL || fields[HOST_INDEX] == NULL || fields[FILE_INDEX] == NULL)
     {
-        return -1;
+        return -2;
     }
 
     struct hostent * host;
 
     if ((host = gethostbyname(fields[HOST_INDEX])) == NULL)
     {
-        return -2;
+        return -3;
     }
 
     fields[HOST_NAME_INDEX] = host->h_name;

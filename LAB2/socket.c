@@ -2,7 +2,7 @@
 
 int ftp_connect(char* ip, int port){
 	int fd;
-	char response[255];
+	//char response[2048];
 	struct sockaddr_in address;
 
 	bzero((char*)&address,sizeof(address));
@@ -11,6 +11,7 @@ int ftp_connect(char* ip, int port){
 	address.sin_port = htons(port);
 
 	fd = socket(AF_INET, SOCK_STREAM, 0);
+
 
 	if(fd < 0)
 	{
@@ -23,11 +24,6 @@ int ftp_connect(char* ip, int port){
 		return -2;
 	}
 
-    if((ftp_response(fd, response)) != SOCKET_READY)
-    {
-        return -3;
-    }
-
 	return fd;
 }
 
@@ -38,11 +34,13 @@ int ftp_response(int fd, char* response){
 	size_t size = 0;
 	int total = 0, code;
 
+	memset(response, 0, 2048);
+
 	while (getline(&buffer, &size, file) > 0) {
 		strncat(response, buffer, total - 1);
 		total += size;
 
-		if (buffer[3] == ' ') {
+		if (isdigit(buffer[0])&&isdigit(buffer[1])&&isdigit(buffer[2])&&buffer[3]==' ') {
 			sscanf(buffer, "%d", &code);
 			break;
 		}
@@ -50,11 +48,15 @@ int ftp_response(int fd, char* response){
 
     printf("< %s\n", response);
 
+    free(buffer);	
     return total < 1 ? -1 : code;
 }
 
 int ftp_command(int fd, char* raw_command, char* args) {
+    
+
 	char command[255];
+
 
 	strcpy(command, raw_command);
 
@@ -95,8 +97,8 @@ int parse_pasv_port(char* response, char* ip){
 }
 
 int ftp_login(int fd, char* user, char* password){
-	char response[255];
-	
+	char response[2048] = {0};
+
 	if(ftp_command(fd, "user", user) < 0)
 	{
 		return -1;
