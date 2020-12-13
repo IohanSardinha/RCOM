@@ -27,34 +27,34 @@ int main(int argc, char * argv[])
 }
 
 int download(char* fields[]){
-    int socket_fd, port, data_fd, file_fd, size;
+    int socket_fd, port, data_fd, file_fd, size, errno;
     char response[2048] ;
     char ip[16], buffer[1024];
 
     if((socket_fd = ftp_connect(fields[IP_INDEX], 21)) < 0)
     {
-        return socket_fd - 100;
+        return socket_fd;
     }
 
     if((ftp_response(socket_fd, response)) != SOCKET_READY)
     {
-        return -1;
+        return -3;
     }
 
-    if(ftp_login(socket_fd, fields[USER_INDEX], fields[PASS_INDEX]) < 0)
+    if((errno = ftp_login(socket_fd, fields[USER_INDEX], fields[PASS_INDEX])) < 0)
     {
-        return -2;
+        return -errno;
     }
 
 
     if(ftp_command(socket_fd, "pasv", NULL))
     {
-        return -3;
+        return -8;
     }
 
     if(ftp_response(socket_fd, response) != PASV)
     {
-        return -4;
+        return -9;
     }
 
     port = parse_pasv_port(response, ip);
@@ -68,32 +68,32 @@ int download(char* fields[]){
 
     if(ftp_command(socket_fd, "retr", fields[PATH_INDEX]) < 0)
     {
-        return -5;
+        return -10;
     }
 
     if((file_fd = open(fields[FILE_INDEX], O_WRONLY | O_CREAT, 0777)) < 0){
-        return -6;
+        return -11;
     }
 
     while((size = read(data_fd, buffer, 1024)) > 0){
         if (write(file_fd, buffer, size) < 0) {
-            return -7;
+            return -12;
         }
     }
 
     if(close(file_fd) < 0)
     {    
-        return -8;
+        return -13;
     }
 
     if(close(data_fd) < 0)
     {
-        return -9;
+        return -14;
     }
 
     if(close(socket_fd < 0))
     {
-        return -10;    
+        return -15;    
     }
 
     return 0;

@@ -101,22 +101,22 @@ int ftp_login(int fd, char* user, char* password){
 
 	if(ftp_command(fd, "user", user) < 0)
 	{
-		return -1;
+		return -4;
 	}
 
 	if(ftp_response(fd, response) != USERNAME_OK)
 	{
-		return -2;
+		return -5;
 	}
 
 	if(ftp_command(fd, "pass", password) < 0)
 	{
-		return -3;
+		return -6;
 	}
 
 	if(ftp_response(fd, response) != LOGIN_OK)
 	{
-		return -4;
+		return -7;
 	}
 
 	return 0;
