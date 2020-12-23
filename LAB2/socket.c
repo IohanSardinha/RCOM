@@ -15,6 +15,7 @@ int ftp_connect(char* ip, int port){
 
 	if(fd < 0)
 	{
+		fprintf(stderr, "Could open socket!\n");	
 		return -1;
 	}
 
@@ -71,6 +72,7 @@ int ftp_command(int fd, char* raw_command, char* args) {
 
     if ((size = write(fd, command, strlen(command))) != strlen(command)) 
     {
+    	fprintf(stderr, "Could not write command!\n");	
         return -1;
     }
 
@@ -78,6 +80,7 @@ int ftp_command(int fd, char* raw_command, char* args) {
 
 	if(size < 0)
 	{
+		fprintf(stderr, "Could not write command!\n");
 		return -1;
 	}
 
@@ -101,21 +104,25 @@ int ftp_login(int fd, char* user, char* password){
 
 	if(ftp_command(fd, "user", user) < 0)
 	{
+		fprintf(stderr, "Could not login user!\n");
 		return -4;
 	}
 
 	if(ftp_response(fd, response) != USERNAME_OK)
 	{
+		fprintf(stderr, "Wrong response from login user!\n");
 		return -5;
 	}
 
 	if(ftp_command(fd, "pass", password) < 0)
 	{
+		fprintf(stderr, "Could not login password!\n");
 		return -6;
 	}
 
 	if(ftp_response(fd, response) != LOGIN_OK)
 	{
+		fprintf(stderr, "Wrong response to login!\n");
 		return -7;
 	}
 

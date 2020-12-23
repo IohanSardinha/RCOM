@@ -33,11 +33,13 @@ int download(char* fields[]){
 
     if((socket_fd = ftp_connect(fields[IP_INDEX], 21)) < 0)
     {
+        fprintf(stderr, "Could not connect to command socket!\n");
         return socket_fd;
     }
 
     if((ftp_response(socket_fd, response)) != SOCKET_READY)
     {
+        fprintf(stderr, "Wrong response from socket connection!\n");
         return -3;
     }
 
@@ -49,11 +51,13 @@ int download(char* fields[]){
 
     if(ftp_command(socket_fd, "pasv", NULL))
     {
+        fprintf(stderr, "Could not enter passive mode!\n");
         return -8;
     }
 
     if(ftp_response(socket_fd, response) != PASV)
     {
+        fprintf(stderr, "Wrong response entering passive mode!\n");
         return -9;
     }
 
@@ -62,37 +66,44 @@ int download(char* fields[]){
 
     if((data_fd = ftp_connect(ip, port)) < 0)
     {
+        fprintf(stderr, "Could not connect data socket!\n");
         return -data_fd;
     }
 
 
     if(ftp_command(socket_fd, "retr", fields[PATH_INDEX]) < 0)
     {
+        fprintf(stderr, "Could not call retr!\n");
         return -10;
     }
 
     if((file_fd = open(fields[FILE_INDEX], O_WRONLY | O_CREAT, 0777)) < 0){
+        fprintf(stderr, "Could not open downloading file!\n");
         return -11;
     }
 
     while((size = read(data_fd, buffer, 1024)) > 0){
         if (write(file_fd, buffer, size) < 0) {
+            fprintf(stderr, "Unexpected error while writing downloading file!\n");
             return -12;
         }
     }
 
     if(close(file_fd) < 0)
     {    
+        fprintf(stderr, "Could not close downloading file properly!\n");
         return -13;
     }
 
     if(close(data_fd) < 0)
     {
+        fprintf(stderr, "Could not close data socket properly!\n");
         return -14;
     }
 
     if(close(socket_fd < 0))
     {
+        fprintf(stderr, "Could not close commands socket properly!\n");
         return -15;    
     }
 
